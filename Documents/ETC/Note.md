@@ -38,7 +38,7 @@ Dự án: Thiết kế mô hình Automotive Gateway cho xe điều khiển phân
 - Làm việc trên Keilc luôn vì chỉ code AppKeil.
 - [x] Học dùng Git
 - [x] Học Timer, PWM, UART để điều khiển động cơ bằng STM
-- [ ] Thiết kế sơ đồ nối dây
+- [x] Thiết kế sơ đồ nối dây (Xem chi tiết tại [Wiring_Diagram.md](../Wiring_Diagram.md))
 
 - [ ] Làm xe chạy được theo từng lệnh giữa STM và ESP
 - [ ] Đổi qua dùng CAN để giao tiếp 
