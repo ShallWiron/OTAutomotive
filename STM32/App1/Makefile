@@ -17,7 +17,7 @@
 ######################################
 # target
 ######################################
-TARGET = template_make
+TARGET = app1
 
 
 ######################################
@@ -41,6 +41,7 @@ BUILD_DIR = build
 # C sources
 C_SOURCES =  \
 Src/main.c \
+Src/ota_trigger.c \
 Src/stm32f10x_it.c \
 Drivers/STM32F10x_StdPeriph_Driver/src/misc.c \
 Drivers/STM32F10x_StdPeriph_Driver/src/stm32f10x_adc.c \
@@ -191,7 +192,7 @@ $(BUILD_DIR):
 # st-flash added by Ngo Hung Cuong
 #######################################		
 flash: $(BUILD_DIR)/$(TARGET).bin
-	st-flash write $< 0x08000000
+	st-flash write $< 0x08004000
 #######################################
 # clean up
 #######################################

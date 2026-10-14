@@ -1,4 +1,5 @@
 #include "stm32f10x.h"
+#include "ota_trigger.h"
 
 void Delay1Ms(void);
 void Delay_Ms(uint32_t u32DelayInMs);
@@ -46,17 +47,17 @@ int main(void)
 	timerInit.TIM_Prescaler = 72 - 1;
 	
 	TIM_TimeBaseInit(TIM2, &timerInit);
-	
 	TIM_Cmd(TIM2, ENABLE);
 	
+	/* Khởi tạo lắng nghe lệnh OTA qua CAN */
+	OTA_Trigger_Init();
 	
 	while (1) {
+		OTA_Trigger_Poll();
 		GPIO_SetBits(GPIOC, GPIO_Pin_13);
-		//GPIO_SetBits(GPIOB, GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15);
-		Delay_Ms(1000);
+		Delay_Ms(500);
+		OTA_Trigger_Poll();
 		GPIO_ResetBits(GPIOC, GPIO_Pin_13);
-		//GPIO_ResetBits(GPIOB, GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15);
-		Delay_Ms(1000);
+		Delay_Ms(500);
 	}
-	
 }

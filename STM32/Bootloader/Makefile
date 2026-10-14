@@ -17,7 +17,7 @@
 ######################################
 # target
 ######################################
-TARGET = template_make
+TARGET = bootloader
 
 
 ######################################
@@ -41,6 +41,13 @@ BUILD_DIR = build
 # C sources
 C_SOURCES =  \
 Src/main.c \
+Src/delay_tim2.c \
+Src/uart.c \
+Src/can.c \
+Src/flash.c \
+Src/crc16.c \
+Src/bootloader.c \
+Src/ota_protocol.c \
 Src/stm32f10x_it.c \
 Drivers/STM32F10x_StdPeriph_Driver/src/misc.c \
 Drivers/STM32F10x_StdPeriph_Driver/src/stm32f10x_adc.c \
