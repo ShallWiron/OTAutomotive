@@ -41,7 +41,6 @@ BUILD_DIR = build
 # C sources
 C_SOURCES =  \
 Src/main.c \
-Src/buzzer.c \
 Src/ota_trigger.c \
 Src/stm32f10x_it.c \
 Drivers/STM32F10x_StdPeriph_Driver/src/misc.c \

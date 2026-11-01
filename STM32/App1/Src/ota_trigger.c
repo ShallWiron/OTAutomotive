@@ -36,30 +36,44 @@ void OTA_Trigger_Init(void)
     canInit.CAN_Prescaler = 9; /* 36MHz / 9 / (1 + 5 + 2) = 500 kbps */
     CAN_Init(CAN1, &canInit);
 
-    /* 4. Cấu hình Filter nhận các bản tin CAN (chấp nhận cả Control và OTA) */
+    /* 4. Cấu hình Filter nhận các bản tin CAN theo phân luồng phần cứng */
     CAN_FilterInitTypeDef filterInit;
+
+    /* Filter 0: Luồng Control (2 bit đầu [10:9] = 00) -> FIFO 0 */
     filterInit.CAN_FilterNumber = 0;
     filterInit.CAN_FilterMode = CAN_FilterMode_IdMask;
     filterInit.CAN_FilterScale = CAN_FilterScale_32bit;
     filterInit.CAN_FilterIdHigh = 0x0000;
     filterInit.CAN_FilterIdLow = 0x0000;
-    filterInit.CAN_FilterMaskIdHigh = 0x0000; /* Không che mask -> nhận tất cả */
+    filterInit.CAN_FilterMaskIdHigh = (uint16_t)(0b11 << 14);
     filterInit.CAN_FilterMaskIdLow = 0x0000;
     filterInit.CAN_FilterFIFOAssignment = CAN_Filter_FIFO0;
+    filterInit.CAN_FilterActivation = ENABLE;
+    CAN_FilterInit(&filterInit);
+
+    /* Filter 1: Luồng OTA (2 bit đầu [10:9] = 11) -> FIFO 1 */
+    filterInit.CAN_FilterNumber = 1;
+    filterInit.CAN_FilterMode = CAN_FilterMode_IdMask;
+    filterInit.CAN_FilterScale = CAN_FilterScale_32bit;
+    filterInit.CAN_FilterIdHigh = (uint16_t)(0b11 << 14);
+    filterInit.CAN_FilterIdLow = 0x0000;
+    filterInit.CAN_FilterMaskIdHigh = (uint16_t)(0b11 << 14);
+    filterInit.CAN_FilterMaskIdLow = 0x0000;
+    filterInit.CAN_FilterFIFOAssignment = CAN_Filter_FIFO1;
     filterInit.CAN_FilterActivation = ENABLE;
     CAN_FilterInit(&filterInit);
 }
 
 void OTA_Trigger_Poll(void)
 {
-    /* Kiểm tra xem FIFO0 có bản tin không */
-    if (CAN_MessagePending(CAN1, CAN_FIFO0) == 0)
+    /* Kiểm tra xem FIFO1 có bản tin OTA không */
+    if (CAN_MessagePending(CAN1, CAN_FIFO1) == 0)
     {
         return;
     }
 
     CanRxMsg rx;
-    CAN_Receive(CAN1, CAN_FIFO0, &rx);
+    CAN_Receive(CAN1, CAN_FIFO1, &rx);
 
     /* Kiểm tra ID 0x600 và đúng 4 byte Security Key [0xDE, 0xAD, 0xBE, 0xEF] */
     if (rx.StdId == ID_REQ_BOOT && rx.DLC == 4)
