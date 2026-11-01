@@ -1,63 +1,48 @@
 #include "stm32f10x.h"
 #include "ota_trigger.h"
-
-void Delay1Ms(void);
-void Delay_Ms(uint32_t u32DelayInMs);
-
-void Delay1Ms(void)
-{
-	
-	TIM_SetCounter(TIM2, 0);
-	while (TIM_GetCounter(TIM2) < 1000) {
-	}
-}
-
-void Delay_Ms(uint32_t u32DelayInMs)
-{
-	
-	while (u32DelayInMs) {
-		Delay1Ms();
-		--u32DelayInMs;
-	}
-}
+#include "buzzer.h"
 
 int main(void)
 {
 	GPIO_InitTypeDef gpioInit;
-	TIM_TimeBaseInitTypeDef timerInit;
 	
+	/* Khởi tạo hàm trễ SysTick chuẩn Cortex-M3 */
+	Delay_Init();
+	
+	/* Cấp clock cho GPIO Port B và C */
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
 	
+	/* Cấu hình LED báo trạng thái PC13 */
 	gpioInit.GPIO_Mode = GPIO_Mode_Out_PP;
 	gpioInit.GPIO_Pin = GPIO_Pin_13;
 	gpioInit.GPIO_Speed = GPIO_Speed_50MHz;
-	
 	GPIO_Init(GPIOC, &gpioInit);
 	
+	/* Cấu hình các chân điều khiển động cơ PB12-PB15 */
 	gpioInit.GPIO_Mode = GPIO_Mode_Out_PP;
 	gpioInit.GPIO_Pin = GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15;
 	gpioInit.GPIO_Speed = GPIO_Speed_50MHz;
-	
 	GPIO_Init(GPIOB, &gpioInit);
 	
-	timerInit.TIM_CounterMode = TIM_CounterMode_Up;
-	timerInit.TIM_Period = 0xFFFF;
-	timerInit.TIM_Prescaler = 72 - 1;
-	
-	TIM_TimeBaseInit(TIM2, &timerInit);
-	TIM_Cmd(TIM2, ENABLE);
+	/* Khởi tạo ngoại vi điều khiển Buzzer bị động trên chân PA0 (TIM2_CH1 PWM) */
+	Buzzer_Init();
 	
 	/* Khởi tạo lắng nghe lệnh OTA qua CAN */
 	OTA_Trigger_Init();
+	
+	/* Phát âm báo khởi động App 1 thành công */
+	Buzzer_PlayStartup();
 	
 	while (1) {
 		OTA_Trigger_Poll();
 		GPIO_SetBits(GPIOC, GPIO_Pin_13);
 		Delay_Ms(500);
+		
 		OTA_Trigger_Poll();
 		GPIO_ResetBits(GPIOC, GPIO_Pin_13);
-		Delay_Ms(500);
+		/* Beep nhẹ 30ms theo nhịp nhấp nháy LED */
+		Buzzer_Beep(BUZZER_FREQ_DEFAULT, 30);
+		Delay_Ms(470);
 	}
 }
