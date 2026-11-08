@@ -123,8 +123,12 @@ static String buildHtmlPage() {
 
     // 1. Khối thông tin hệ thống & STM32
     html += "<fieldset><legend>1. Thông tin hệ thống & STM32 ECU</legend>";
-    html += "<p><b>WiFi STA IP:</b> " + (WiFi.status() == WL_CONNECTED ? WiFi.localIP().toString() : String("Chưa kết nối (Đang quét...)")) + "</p>";
-    html += "<p><b>WiFi SoftAP:</b> " + String(WIFI_AP_SSID) + " (IP: " + WiFi.softAPIP().toString() + ")</p>";
+    if (WiFi.status() == WL_CONNECTED) {
+        html += "<p><b>Trạng thái WiFi:</b> <span style='color:green; font-weight:bold;'>Đã kết nối</span> (SSID: <b>" + String(WIFI_SSID) + "</b>, RSSI: " + String(WiFi.RSSI()) + " dBm)</p>";
+        html += "<p><b>Địa chỉ IP:</b> <a href='http://" + WiFi.localIP().toString() + "/' target='_blank'>http://" + WiFi.localIP().toString() + "/</a></p>";
+    } else {
+        html += "<p><b>Trạng thái WiFi:</b> <span style='color:red; font-weight:bold;'>Chưa kết nối / Đang kết nối lại...</span> (SSID: " + String(WIFI_SSID) + ")</p>";
+    }
     html += "<p><b>Thẻ nhớ SD:</b> " + String(SD.cardType() != CARD_NONE ? "Đã sẵn sàng" : "<span style='color:red;'>Chưa nhận thẻ nhớ!</span>") + "</p>";
     html += "<hr style='border:0; border-top:1px dashed #ccc;'>";
     html += "<p><b>Phân vùng App hiện tại của STM32:</b> ";
@@ -403,18 +407,12 @@ void OTA_WebServer_Init(OTA_Protocol& otaProtocol) {
     g_ota = &otaProtocol;
     g_prefs.begin("ota_gw", false);
 
-    // Cấu hình Wi-Fi: Chạy song song cả STA và SoftAP
-    WiFi.mode(WIFI_AP_STA);
+    // Cấu hình Wi-Fi: Chế độ Station (Bắt sóng WiFi ngoài / Hotspot)
+    WiFi.mode(WIFI_STA);
+    WiFi.setAutoReconnect(true);
 
-    // Bật SoftAP để luôn truy cập được kể cả mang ra ngoài xe không có router
-    WiFi.softAP(WIFI_AP_SSID, WIFI_AP_PASSWORD);
-    Serial.println("\n[WIFI AP] Da khoi tao SoftAP:");
-    Serial.printf("  -> SSID:     %s\n", WIFI_AP_SSID);
-    Serial.printf("  -> Password: %s\n", WIFI_AP_PASSWORD);
-    Serial.printf("  -> IP AP:    %s\n", WiFi.softAPIP().toString().c_str());
-
-    // Kết nối vào mạng WiFi phòng thí nghiệm
-    Serial.printf("[WIFI STA] Dang ket noi vao %s...\n", WIFI_SSID);
+    Serial.println("\n[WIFI STA] Dang khoi tao ket noi WiFi...");
+    Serial.printf("  -> Ket noi toi SSID: %s\n", WIFI_SSID);
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
     // Cài đặt các route cho Web Server
@@ -426,8 +424,7 @@ void OTA_WebServer_Init(OTA_Protocol& otaProtocol) {
 
     server.begin();
     Serial.println("[HTTP] Web Server da khoi dong tren port 80!");
-    Serial.println(">> Truy cap Web dieu khien tai:");
-    Serial.printf("   - Qua SoftAP: http://%s/\n", WiFi.softAPIP().toString().c_str());
+    Serial.println(">> Web OTA san sang (Vui long doi WiFi ket noi de lay dia chi IP)...");
 }
 
 void OTA_WebServer_Loop() {

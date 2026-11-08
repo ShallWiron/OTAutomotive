@@ -61,9 +61,9 @@ void loop() {
         static bool wasConnected = false;
         bool isConnected = (WiFi.status() == WL_CONNECTED);
         if (isConnected && !wasConnected) {
-            Serial.printf("[WIFI STA] Da ket noi thanh cong! IP: %s\n",
-                          WiFi.localIP().toString().c_str());
-            Serial.printf(">> Truy cap Web tai: http://%s/\n",
+            Serial.printf("\n[WIFI STA] Da ket noi thanh cong vao: %s\n", WIFI_SSID);
+            Serial.printf(">> IP duoc cap:   %s\n", WiFi.localIP().toString().c_str());
+            Serial.printf(">> Truy cap Web OTA tai: http://%s/\n\n",
                           WiFi.localIP().toString().c_str());
         }
         wasConnected = isConnected;

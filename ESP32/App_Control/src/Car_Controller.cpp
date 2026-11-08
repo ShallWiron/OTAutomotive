@@ -48,30 +48,6 @@ bool Car_Controller::triggerBootloader() {
     return false;
 }
 
-bool Car_Controller::ledOn() {
-    _ledState = true;
-    return sendCanCommand(CMD_LED_ON, "LED_ON");
-}
-
-bool Car_Controller::ledOff() {
-    _ledState = false;
-    return sendCanCommand(CMD_LED_OFF, "LED_OFF");
-}
-
-bool Car_Controller::relayOn() {
-    _relayState = true;
-    return sendCanCommand(CMD_RELAY_ON, "RELAY_ON");
-}
-
-bool Car_Controller::relayOff() {
-    _relayState = false;
-    return sendCanCommand(CMD_RELAY_OFF, "RELAY_OFF");
-}
-
-bool Car_Controller::buzzerBeep() {
-    return sendCanCommand(CMD_BUZZER_BEEP, "BUZZER");
-}
-
 // ==================== Nhóm 1: Điều khiển Bánh xe ====================
 bool Car_Controller::moveForward() {
     return sendCanCommand(CMD_MOTOR_FORWARD, "FORWARD");
@@ -138,77 +114,100 @@ bool Car_Controller::gripperClose() {
     return sendCanCommand(CMD_SERVO_GRIP_CLOSE, "GRIP_CLOSE");
 }
 
-// ==================== Bộ điều phối lệnh ====================
+// ==================== Bộ điều phối chuẩn Opcode CAN ID ====================
+bool Car_Controller::executeCanId(uint16_t can_id) {
+    if (can_id == CAN_ID_REQ_BOOT) {
+        return triggerBootloader();
+    }
+
+    String actionName = "UNKNOWN_CMD";
+
+    switch (can_id) {
+        case CMD_EMERGENCY_STOP:    actionName = "EMERGENCY_STOP"; break;
+        case CMD_MODE_MOTOR:        actionName = "MODE_MOTOR"; _currentMode = CarMode::MODE_MOTOR; break;
+        case CMD_MODE_SERVO:        actionName = "MODE_SERVO"; _currentMode = CarMode::MODE_SERVO; break;
+
+        case CMD_MOTOR_STOP:        actionName = "MOTOR_STOP"; break;
+        case CMD_MOTOR_FORWARD:     actionName = "MOTOR_FORWARD"; break;
+        case CMD_MOTOR_BACKWARD:    actionName = "MOTOR_BACKWARD"; break;
+        case CMD_MOTOR_TURN_LEFT:   actionName = "MOTOR_TURN_LEFT"; break;
+        case CMD_MOTOR_TURN_RIGHT:  actionName = "MOTOR_TURN_RIGHT"; break;
+        case CMD_MOTOR_LEFT_FWD:    actionName = "MOTOR_LEFT_FWD"; break;
+        case CMD_MOTOR_LEFT_REV:    actionName = "MOTOR_LEFT_REV"; break;
+        case CMD_MOTOR_RIGHT_FWD:   actionName = "MOTOR_RIGHT_FWD"; break;
+        case CMD_MOTOR_RIGHT_REV:   actionName = "MOTOR_RIGHT_REV"; break;
+
+        case CMD_SERVO_STOP:        actionName = "SERVO_STOP"; break;
+        case CMD_SERVO_ARM_UP:      actionName = "SERVO_ARM_UP"; break;
+        case CMD_SERVO_ARM_DOWN:    actionName = "SERVO_ARM_DOWN"; break;
+        case CMD_SERVO_ARM_EXTEND:  actionName = "SERVO_ARM_EXTEND"; break;
+        case CMD_SERVO_ARM_RETRACT: actionName = "SERVO_ARM_RETRACT"; break;
+        case CMD_SERVO_GRIP_OPEN:   actionName = "SERVO_GRIP_OPEN"; break;
+        case CMD_SERVO_GRIP_CLOSE:  actionName = "SERVO_GRIP_CLOSE"; break;
+
+        default:
+            actionName = "CMD_0x" + String(can_id, HEX);
+            break;
+    }
+
+    return sendCanCommand(can_id, actionName);
+}
+
 bool Car_Controller::executeCommand(const String &cmd) {
     String c = cmd;
     c.trim();
 
-    // 1. Nhóm An toàn & Chuyển chế độ
+    // 1. Nếu là chuỗi số Hex dạng "0x041" hoặc số nguyên
+    if (c.startsWith("0x") || c.startsWith("0X")) {
+        uint16_t id = (uint16_t)strtoul(c.c_str(), nullptr, 16);
+        return executeCanId(id);
+    }
+
+    // 2. Nhóm An toàn & Chuyển chế độ
     if (c.equalsIgnoreCase("emergency_stop") || c.equalsIgnoreCase("estop")) {
         return emergencyStop();
     }
-    if (c.equalsIgnoreCase("mode_motor") || c == "x") {
+    if (c.equalsIgnoreCase("mode_motor")) {
         return setMode(CarMode::MODE_MOTOR);
     }
-    if (c.equalsIgnoreCase("mode_servo") || c == "X") {
+    if (c.equalsIgnoreCase("mode_servo")) {
         return setMode(CarMode::MODE_SERVO);
     }
     if (c.equalsIgnoreCase("bootloader") || c.equalsIgnoreCase("ota_boot")) {
         return triggerBootloader();
     }
 
-    // 2. Kẹp gắp, Đèn, Relay, Buzzer (Khả dụng ở cả 2 chế độ)
-    if (c.equalsIgnoreCase("grip_open") || c == "W") {
+    // 3. Kẹp gắp
+    if (c.equalsIgnoreCase("grip_open")) {
         return gripperOpen();
     }
-    if (c.equalsIgnoreCase("grip_close") || c == "w") {
+    if (c.equalsIgnoreCase("grip_close")) {
         return gripperClose();
     }
-    if (c.equalsIgnoreCase("led_on") || c == "u") {
-        return ledOn();
-    }
-    if (c.equalsIgnoreCase("led_off") || c == "U") {
-        return ledOff();
-    }
-    if (c.equalsIgnoreCase("relay_on") || c == "V") {
-        return relayOn();
-    }
-    if (c.equalsIgnoreCase("relay_off") || c == "v") {
-        return relayOff();
-    }
-    if (c.equalsIgnoreCase("buzzer") || c.equalsIgnoreCase("beep")) {
-        return buzzerBeep();
-    }
 
-    // 3. Lệnh dừng chung
-    if (c.equalsIgnoreCase("stop") || c == "S" || c == "space") {
+    // 4. Lệnh dừng chung
+    if (c.equalsIgnoreCase("stop") || c.equalsIgnoreCase("space") || c.equalsIgnoreCase("s") || c.equalsIgnoreCase("x") || c == " ") {
         return (_currentMode == CarMode::MODE_MOTOR) ? stop() : armStop();
     }
 
-    // 4. Các lệnh trực tiếp hoặc theo chế độ
-    if (_currentMode == CarMode::MODE_MOTOR) {
-        if (c.equalsIgnoreCase("forward")   || c == "F" || c == "w_key") return moveForward();
-        if (c.equalsIgnoreCase("backward")  || c == "B" || c == "s_key") return moveBackward();
-        if (c.equalsIgnoreCase("left")      || c.equalsIgnoreCase("spin_left")  || c == "L" || c == "a_key") return turnLeft();
-        if (c.equalsIgnoreCase("right")     || c.equalsIgnoreCase("spin_right") || c == "R" || c == "d_key") return turnRight();
-        if (c.equalsIgnoreCase("left_fwd")  || c == "G") return leftWheelForward();
-        if (c.equalsIgnoreCase("left_rev")  || c == "H") return leftWheelBackward();
-        if (c.equalsIgnoreCase("right_fwd") || c == "I") return rightWheelForward();
-        if (c.equalsIgnoreCase("right_rev") || c == "J") return rightWheelBackward();
-    } else {
-        // Chế độ Servo
-        if (c.equalsIgnoreCase("arm_up")      || c == "F") return armUp();
-        if (c.equalsIgnoreCase("arm_down")    || c == "B") return armDown();
-        if (c.equalsIgnoreCase("arm_extend")  || c == "L") return armExtend();
-        if (c.equalsIgnoreCase("arm_retract") || c == "R") return armRetract();
-        if (c.equalsIgnoreCase("arm_stop"))               return armStop();
+    // 5. Điều khiển Bánh xe (Hỗ trợ cả tên đầy đủ và phím tắt F, B, L, R, W, A, S, D)
+    if (c.equalsIgnoreCase("forward") || c.equalsIgnoreCase("f") || c.equalsIgnoreCase("w")) return moveForward();
+    if (c.equalsIgnoreCase("backward") || c.equalsIgnoreCase("b"))                            return moveBackward();
+    if (c.equalsIgnoreCase("left") || c.equalsIgnoreCase("l") || c.equalsIgnoreCase("a"))    return turnLeft();
+    if (c.equalsIgnoreCase("right") || c.equalsIgnoreCase("r") || c.equalsIgnoreCase("d"))   return turnRight();
+    
+    // 4 góc chéo
+    if (c.equalsIgnoreCase("left_fwd") || c.equalsIgnoreCase("g") || c.equalsIgnoreCase("q"))  return leftWheelForward();
+    if (c.equalsIgnoreCase("right_fwd") || c.equalsIgnoreCase("i") || c.equalsIgnoreCase("e")) return rightWheelForward();
+    if (c.equalsIgnoreCase("left_rev") || c.equalsIgnoreCase("h") || c.equalsIgnoreCase("z"))  return leftWheelBackward();
+    if (c.equalsIgnoreCase("right_rev") || c.equalsIgnoreCase("j") || c.equalsIgnoreCase("c"))  return rightWheelBackward();
 
-        // Vẫn cho phép điều khiển xe khẩn cấp ngay cả khi đang ở tab servo
-        if (c.equalsIgnoreCase("forward"))    return moveForward();
-        if (c.equalsIgnoreCase("backward"))   return moveBackward();
-        if (c.equalsIgnoreCase("spin_left"))  return turnLeft();
-        if (c.equalsIgnoreCase("spin_right")) return turnRight();
-    }
+    // 6. Điều khiển Tay gắp
+    if (c.equalsIgnoreCase("arm_up"))      return armUp();
+    if (c.equalsIgnoreCase("arm_down"))    return armDown();
+    if (c.equalsIgnoreCase("arm_extend"))  return armExtend();
+    if (c.equalsIgnoreCase("arm_retract")) return armRetract();
+    if (c.equalsIgnoreCase("arm_stop"))    return armStop();
 
     Serial.printf("[CAR] Khong nhan dien duoc lenh: %s\n", c.c_str());
     return false;
@@ -219,13 +218,10 @@ String Car_Controller::getModeString() const {
 }
 
 String Car_Controller::getStatusJson() const {
-    char buf[192];
+    char buf[128];
     snprintf(buf, sizeof(buf),
-             "{\"mode\":\"%s\",\"last_action\":\"%s\",\"led\":%s,\"relay\":%s,\"uptime_s\":%lu}",
+             "{\"mode\":\"%s\",\"last_action\":\"%s\",\"uptime_s\":%lu}",
              getModeString().c_str(), _lastAction.c_str(),
-             _ledState ? "true" : "false",
-             _relayState ? "true" : "false",
              millis() / 1000UL);
     return String(buf);
 }
-

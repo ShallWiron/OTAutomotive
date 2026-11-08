@@ -9,11 +9,9 @@
 #define CAN_TX_PIN          GPIO_NUM_5
 #define CAN_RX_PIN          GPIO_NUM_4
 
-// ==================== Thông tin mạng WiFi ====================
-#define WIFI_SSID           "Shall"
-#define WIFI_PASSWORD       "0123456789"
-#define WIFI_AP_SSID        "ESP32_OTA_Gateway"
-#define WIFI_AP_PASSWORD    "12345678"
+// ==================== Thông tin mạng WiFi (Station - Bắt WiFi ngoài) ====================
+#define WIFI_SSID           "Shall"     // Thay tên WiFi / Hotspot điện thoại tại đây
+#define WIFI_PASSWORD       "0123456789"       // Thay mật khẩu WiFi tại đây
 
 // ==================== Định nghĩa CAN ID (11-bit) ====================
 #define CAN_ID_REQ_BOOT     0x600U  // Pha 0: Yêu cầu Soft-Reset sang Bootloader

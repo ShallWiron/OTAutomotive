@@ -19,20 +19,10 @@ public:
 
     void begin();
 
-    // ==================== Nhóm 0: An toàn & Hệ thống ====================
+    // ==================== Nhóm 0: An toàn & Chuyển chế độ ====================
     bool emergencyStop();
     bool setMode(CarMode mode);
     bool triggerBootloader();
-
-    // ==================== Nhóm 0: Phụ trợ & Ngoại vi ====================
-    bool ledOn();
-    bool ledOff();
-    bool relayOn();
-    bool relayOff();
-    bool buzzerBeep();
-
-    bool isLedOn() const { return _ledState; }
-    bool isRelayOn() const { return _relayState; }
 
     // ==================== Nhóm 1: Điều khiển Bánh xe ====================
     bool moveForward();
@@ -54,15 +44,19 @@ public:
     bool gripperOpen();
     bool gripperClose();
 
-    // ==================== Bộ điều phối lệnh (Dùng cho Web & Serial) ====================
+    // ==================== Bộ điều phối lệnh chuẩn Opcode CAN ID ====================
     /**
-     * @brief Thực thi lệnh dạng chuỗi (Hỗ trợ cả từ khóa Web API và ký tự phím tắt)
-     * @param cmd Chuỗi lệnh (vd: "forward", "stop", "arm_up", "F", "S", "X"...)
-     * @return true nếu gửi frame CAN thành công
+     * @brief Thực thi lệnh trực tiếp bằng mã CAN ID (Opcode)
+     * @param can_id Mã lệnh Hex (vd: 0x041: FORWARD, 0x040: STOP, 0x081: ARM_UP...)
+     */
+    bool executeCanId(uint16_t can_id);
+
+    /**
+     * @brief Thực thi lệnh dạng chuỗi (Hỗ trợ mã hex '0x041' hoặc từ khóa mô tả 'forward', 'stop'...)
      */
     bool executeCommand(const String &cmd);
 
-    // ==================== Trạng thái hệ thống (Chuẩn bị cho Web Dashboard) ====================
+    // ==================== Trạng thái hệ thống ====================
     CarMode getMode() const { return _currentMode; }
     String getModeString() const;
     String getLastAction() const { return _lastAction; }
@@ -72,11 +66,8 @@ private:
     CAN_Driver &_can;
     CarMode _currentMode;
     String _lastAction;
-    bool _ledState = false;
-    bool _relayState = false;
 
     bool sendCanCommand(uint32_t can_id, const String &action_name);
 };
 
 #endif // CAR_CONTROLLER_H
-
