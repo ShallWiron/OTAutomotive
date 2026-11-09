@@ -4,14 +4,13 @@
 
 void Delay_Init(void)
 {
-    /* Dùng TIM2 để đếm us chính xác */
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
 
     TIM_TimeBaseInitTypeDef tb;
     TIM_TimeBaseStructInit(&tb);
     tb.TIM_CounterMode   = TIM_CounterMode_Up;
     tb.TIM_Period        = 0xFFFF;
-    tb.TIM_Prescaler     = 72 - 1; /* 1us mỗi tick tại 72MHz */
+    tb.TIM_Prescaler     = 72 - 1;
     TIM_TimeBaseInit(TIM2, &tb);
     TIM_Cmd(TIM2, ENABLE);
 }

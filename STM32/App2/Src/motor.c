@@ -34,48 +34,40 @@ void Motor_Stop(void)
 
 void Motor_Forward(void)
 {
-    /* Hai bên cùng quay tiến */
     Motor_SetSides(1, 0, 1, 0);
 }
 
 void Motor_Backward(void)
 {
-    /* Hai bên cùng quay lùi */
     Motor_SetSides(0, 1, 0, 1);
 }
 
 void Motor_TurnLeft(void)
 {
-    /* Xoay trái: Cụm trái lùi, cụm phải tiến */
     Motor_SetSides(0, 1, 1, 0);
 }
 
 void Motor_TurnRight(void)
 {
-    /* Xoay phải: Cụm trái tiến, cụm phải lùi */
     Motor_SetSides(1, 0, 0, 1);
 }
 
 void Motor_LeftFwd(void)
 {
-    /* Tiến lệch trái: Cụm phải tiến, cụm trái đứng yên */
     Motor_SetSides(0, 0, 1, 0);
 }
 
 void Motor_RightFwd(void)
 {
-    /* Tiến lệch phải: Cụm trái tiến, cụm phải đứng yên */
     Motor_SetSides(1, 0, 0, 0);
 }
 
 void Motor_LeftRev(void)
 {
-    /* Lùi lệch trái: Cụm phải lùi, cụm trái đứng yên */
     Motor_SetSides(0, 0, 0, 1);
 }
 
 void Motor_RightRev(void)
 {
-    /* Lùi lệch phải: Cụm trái lùi, cụm phải đứng yên */
     Motor_SetSides(0, 1, 0, 0);
 }

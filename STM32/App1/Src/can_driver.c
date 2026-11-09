@@ -5,11 +5,9 @@
 
 void CAN_Driver_Init(void)
 {
-    /* 1. Bật Clock CAN1, GPIOA, AFIO */
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_CAN1, ENABLE);
     RCC_APB2PeriphClockCmd(CAN_GPIO_CLK | RCC_APB2Periph_AFIO, ENABLE);
 
-    /* 2. Cấu hình GPIO: PA11 = Input Pull-Up, PA12 = Alternate Function Push-Pull */
     GPIO_InitTypeDef gpioInit;
     gpioInit.GPIO_Speed = GPIO_Speed_50MHz;
 
@@ -21,7 +19,6 @@ void CAN_Driver_Init(void)
     gpioInit.GPIO_Mode = GPIO_Mode_AF_PP;
     GPIO_Init(CAN_GPIO_PORT, &gpioInit);
 
-    /* 3. Cấu hình CAN Timing 500 kbps (Clock PCLK1 = 36MHz, Prescaler = 9, 1tq + 5tq + 2tq = 8tq) */
     CAN_InitTypeDef canInit;
     CAN_DeInit(CAN1);
     CAN_StructInit(&canInit);
@@ -34,7 +31,6 @@ void CAN_Driver_Init(void)
     canInit.CAN_Prescaler = 9;
     CAN_Init(CAN1, &canInit);
 
-    /* 4. Filter mở toàn bộ để nhận cả Control (0x000-0x0FF) và OTA (0x600-0x7FF) */
     CAN_FilterInitTypeDef filterInit;
     filterInit.CAN_FilterNumber = 0;
     filterInit.CAN_FilterMode = CAN_FilterMode_IdMask;

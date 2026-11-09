@@ -20,7 +20,6 @@ bool Car_Controller::sendCanCommand(uint32_t can_id, const String &action_name) 
     return ok;
 }
 
-// ==================== Nhóm 0: An toàn & Chuyển chế độ ====================
 bool Car_Controller::emergencyStop() {
     stop();
     return sendCanCommand(CMD_EMERGENCY_STOP, "EMERGENCY_STOP");
@@ -60,7 +59,6 @@ bool Car_Controller::toggleLed() {
     return _ledState ? ledOff() : ledOn();
 }
 
-// ==================== Nhóm 1: Điều khiển Bánh xe ====================
 bool Car_Controller::moveForward() {
     return sendCanCommand(CMD_MOTOR_FORWARD, "FORWARD");
 }
@@ -82,7 +80,6 @@ bool Car_Controller::stop() {
 }
 
 bool Car_Controller::leftWheelForward() {
-    // NW: Đảo theo thực tế kiểm thử xe
     return sendCanCommand(CMD_MOTOR_RIGHT_FWD, "NW");
 }
 
@@ -91,7 +88,6 @@ bool Car_Controller::leftWheelBackward() {
 }
 
 bool Car_Controller::rightWheelForward() {
-    // NE: Đảo theo thực tế kiểm thử xe
     return sendCanCommand(CMD_MOTOR_LEFT_FWD, "NE");
 }
 
@@ -99,7 +95,6 @@ bool Car_Controller::rightWheelBackward() {
     return sendCanCommand(CMD_MOTOR_RIGHT_REV, "SE");
 }
 
-// ==================== Nhóm 2: Điều khiển Cánh tay & Kẹp ====================
 bool Car_Controller::armUp() {
     return sendCanCommand(CMD_SERVO_ARM_UP, "ARM_UP");
 }
@@ -120,7 +115,6 @@ bool Car_Controller::armStop() {
     return sendCanCommand(CMD_SERVO_STOP, "ARM_STOP");
 }
 
-// ==================== Nhóm 3: Còi báo hiệu ====================
 bool Car_Controller::hornOn() {
     _hornState = true;
     return sendCanCommand(CMD_HORN_ON, "HORN_ON");
@@ -131,12 +125,10 @@ bool Car_Controller::hornOff() {
     return sendCanCommand(CMD_HORN_OFF, "HORN_OFF");
 }
 
-// ==================== Bộ điều phối lệnh chuẩn Opcode CAN ID ====================
 bool Car_Controller::executeCanId(uint16_t can_id) {
     String action = "CMD_0x" + String(can_id, HEX);
 
     switch (can_id) {
-        // Nhóm 0
         case CMD_EMERGENCY_STOP:
             action = "ESTOP";
             stop();
@@ -161,7 +153,6 @@ bool Car_Controller::executeCanId(uint16_t can_id) {
             action = "WIFI_CONNECTED";
             break;
 
-        // Nhóm 1: Bánh xe
         case CMD_MOTOR_STOP:       action = "MOTOR_STOP"; break;
         case CMD_MOTOR_FORWARD:    action = "FORWARD"; break;
         case CMD_MOTOR_BACKWARD:   action = "BACKWARD"; break;
@@ -172,14 +163,12 @@ bool Car_Controller::executeCanId(uint16_t can_id) {
         case CMD_MOTOR_RIGHT_FWD:  action = "RIGHT_FWD"; break;
         case CMD_MOTOR_RIGHT_REV:  action = "RIGHT_REV"; break;
 
-        // Nhóm 2: Servo
         case CMD_SERVO_STOP:       action = "SERVO_STOP"; break;
         case CMD_SERVO_ARM_UP:     action = "ARM_UP"; break;
         case CMD_SERVO_ARM_DOWN:   action = "ARM_DOWN"; break;
         case CMD_SERVO_ARM_EXTEND: action = "ARM_EXT"; break;
         case CMD_SERVO_ARM_RETRACT:action = "ARM_RET"; break;
 
-        // Nhóm 3: Còi
         case CMD_HORN_ON:          action = "HORN_ON"; _hornState = true; break;
         case CMD_HORN_OFF:         action = "HORN_OFF"; _hornState = false; break;
 
@@ -194,13 +183,11 @@ bool Car_Controller::executeCommand(const String &cmd) {
     String c = cmd;
     c.trim();
 
-    // 1. Số Hex dạng "0x041"
     if (c.startsWith("0x") || c.startsWith("0X")) {
         uint16_t id = (uint16_t)strtoul(c.c_str(), nullptr, 16);
         return executeCanId(id);
     }
 
-    // 2. An toàn & Chế độ
     if (c.equalsIgnoreCase("emergency_stop") || c.equalsIgnoreCase("estop")) {
         return emergencyStop();
     }
@@ -226,7 +213,6 @@ bool Car_Controller::executeCommand(const String &cmd) {
         return toggleLed();
     }
 
-    // 3. Còi báo hiệu
     if (c.equalsIgnoreCase("horn_on") || c.equalsIgnoreCase("horn") || c.equalsIgnoreCase("h")) {
         return hornOn();
     }
@@ -234,24 +220,20 @@ bool Car_Controller::executeCommand(const String &cmd) {
         return hornOff();
     }
 
-    // 4. Lệnh dừng chung
     if (c.equalsIgnoreCase("stop") || c.equalsIgnoreCase("space") || c.equalsIgnoreCase("x") || c == " ") {
         return (_currentMode == CarMode::MODE_MOTOR) ? stop() : armStop();
     }
 
-    // 5. Điều khiển Bánh xe (Hỗ trợ cả tên đầy đủ và phím tắt F, B, L, R, W, A, S, D)
     if (c.equalsIgnoreCase("forward") || c.equalsIgnoreCase("f") || c.equalsIgnoreCase("w")) return moveForward();
     if (c.equalsIgnoreCase("backward") || c.equalsIgnoreCase("b") || c.equalsIgnoreCase("s")) return moveBackward();
     if (c.equalsIgnoreCase("left") || c.equalsIgnoreCase("l") || c.equalsIgnoreCase("a"))    return turnLeft();
     if (c.equalsIgnoreCase("right") || c.equalsIgnoreCase("r") || c.equalsIgnoreCase("d"))   return turnRight();
 
-    // 4 góc chéo
     if (c.equalsIgnoreCase("left_fwd") || c.equalsIgnoreCase("q") || c.equalsIgnoreCase("nw"))  return leftWheelForward();
     if (c.equalsIgnoreCase("right_fwd") || c.equalsIgnoreCase("e") || c.equalsIgnoreCase("ne")) return rightWheelForward();
     if (c.equalsIgnoreCase("left_rev") || c.equalsIgnoreCase("z") || c.equalsIgnoreCase("sw"))  return leftWheelBackward();
     if (c.equalsIgnoreCase("right_rev") || c.equalsIgnoreCase("c") || c.equalsIgnoreCase("se")) return rightWheelBackward();
 
-    // 6. Điều khiển Tay gắp
     if (c.equalsIgnoreCase("arm_up"))      return armUp();
     if (c.equalsIgnoreCase("arm_down"))    return armDown();
     if (c.equalsIgnoreCase("arm_extend"))  return armExtend();

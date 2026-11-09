@@ -16,4 +16,4 @@
 void OTA_Trigger_Init(void);
 void OTA_Trigger_Check(CanRxMsg *rx);
 
-#endif /* OTA_TRIGGER_H */
+#endif

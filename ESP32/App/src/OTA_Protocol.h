@@ -38,4 +38,4 @@ private:
     bool burstChunkData(const uint8_t* chunkBuf, size_t chunkLen);
 };
 
-#endif // OTA_PROTOCOL_H
+#endif

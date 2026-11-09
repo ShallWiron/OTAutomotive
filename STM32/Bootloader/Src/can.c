@@ -12,27 +12,26 @@ void CAN_Setup(void)
 
     GPIO_InitTypeDef GPIO_Structure;
     GPIO_Structure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_Structure.GPIO_Pin = GPIO_Pin_11; // RX
-    GPIO_Structure.GPIO_Mode = GPIO_Mode_IPU; // Input Pull-Up
+    GPIO_Structure.GPIO_Pin = GPIO_Pin_11;
+    GPIO_Structure.GPIO_Mode = GPIO_Mode_IPU;
     GPIO_Init(GPIOA, &GPIO_Structure);
-    GPIO_Structure.GPIO_Pin = GPIO_Pin_12; // TX
-    GPIO_Structure.GPIO_Mode = GPIO_Mode_AF_PP; // Alternate Function Push-Pull
+    GPIO_Structure.GPIO_Pin = GPIO_Pin_12;
+    GPIO_Structure.GPIO_Mode = GPIO_Mode_AF_PP;
     GPIO_Init(GPIOA, &GPIO_Structure);
 
     CAN_InitTypeDef CAN_Structure;
     CAN_DeInit(CAN1);
     CAN_StructInit(&CAN_Structure);
-    CAN_Structure.CAN_ABOM = ENABLE;  // Tự phục hồi khi Bus-Off
-    CAN_Structure.CAN_NART = DISABLE; // Tự gửi lại khi lỗi
+    CAN_Structure.CAN_ABOM = ENABLE;
+    CAN_Structure.CAN_NART = DISABLE;
     CAN_Structure.CAN_Mode = CAN_Mode_Normal;
     CAN_Structure.CAN_SJW = CAN_SJW_1tq;
     CAN_Structure.CAN_BS1 = CAN_BS1_5tq;
     CAN_Structure.CAN_BS2 = CAN_BS2_2tq;
-    CAN_Structure.CAN_Prescaler = 9;  // 36MHz / 9 / (1 + 5 + 2) = 500 kbps
+    CAN_Structure.CAN_Prescaler = 9;
     CAN_Init(CAN1, &CAN_Structure);
 
     CAN_FilterInitTypeDef Filter_Structure;
-    // Filter 0: Luồng Control (2 bit đầu [10:9] = 00) -> FIFO 0
     Filter_Structure.CAN_FilterNumber = 0;
     Filter_Structure.CAN_FilterMode = CAN_FilterMode_IdMask;
     Filter_Structure.CAN_FilterScale = CAN_FilterScale_32bit;
@@ -44,7 +43,6 @@ void CAN_Setup(void)
     Filter_Structure.CAN_FilterActivation = ENABLE;
     CAN_FilterInit(&Filter_Structure);
 
-    // Filter 1: Luồng OTA (2 bit đầu [10:9] = 11) -> FIFO 1
     Filter_Structure.CAN_FilterNumber = 1;
     Filter_Structure.CAN_FilterMode = CAN_FilterMode_IdMask;
     Filter_Structure.CAN_FilterScale = CAN_FilterScale_32bit;
@@ -108,7 +106,7 @@ void CAN_SendArray(const uint8_t *data, uint16_t length)
     uint8_t start_cmd = 0xAA;
     CAN_SendMessagePolling(0x100, &start_cmd, 1);
 
-    Delay_Ms(2); /* Chờ receiver bên kia sẵn sàng sau START frame */
+    Delay_Ms(2);
 
     uint16_t sent = 0;
     while (sent < length)
@@ -117,7 +115,7 @@ void CAN_SendArray(const uint8_t *data, uint16_t length)
         CAN_SendMessagePolling(0x101, &data[sent], chunk_len);
         sent += chunk_len;
 
-        Delay_Ms(1); /* Inter-frame gap: tránh FIFO overflow phía receiver */
+        Delay_Ms(1);
     }
 
     uint8_t end_cmd = 0xBB;

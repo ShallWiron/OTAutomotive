@@ -16,11 +16,9 @@ static uint16_t Angle_To_Compare(int16_t angle)
 
 void Servo_Init(void)
 {
-    /* 1. Cấp clock TIM3, GPIOA, GPIOB */
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB | RCC_APB2Periph_AFIO, ENABLE);
 
-    /* 2. Cấu hình GPIO PA6, PA7, PB0 (AF Push-Pull 50MHz) */
     GPIO_InitTypeDef gpio;
     gpio.GPIO_Mode  = GPIO_Mode_AF_PP;
     gpio.GPIO_Speed = GPIO_Speed_50MHz;
@@ -31,7 +29,6 @@ void Servo_Init(void)
     gpio.GPIO_Pin   = GPIO_Pin_0;
     GPIO_Init(GPIOB, &gpio);
 
-    /* 3. Cấu hình Timer 3 Base: 72MHz / 72 = 1MHz (1us/tick), Period = 20000us = 50Hz */
     TIM_TimeBaseInitTypeDef tb;
     TIM_TimeBaseStructInit(&tb);
     tb.TIM_Prescaler     = 72 - 1;
@@ -40,7 +37,6 @@ void Servo_Init(void)
     tb.TIM_CounterMode   = TIM_CounterMode_Up;
     TIM_TimeBaseInit(TIM3, &tb);
 
-    /* 4. Cấu hình PWM Mode 1 cho CH1, CH2, CH3 */
     TIM_OCInitTypeDef oc;
     TIM_OCStructInit(&oc);
     oc.TIM_OCMode      = TIM_OCMode_PWM1;
@@ -59,7 +55,6 @@ void Servo_Init(void)
 
     TIM_Cmd(TIM3, ENABLE);
 
-    /* Đặt góc ban đầu về 0 độ */
     Servo_SetLifterAngle(0);
     Servo_SetExtensionAngle(0);
     Servo_SetGripperAngle(0);

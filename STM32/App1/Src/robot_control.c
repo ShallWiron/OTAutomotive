@@ -6,7 +6,7 @@
 #include "ota_trigger.h"
 #include "delay.h"
 
-static uint8_t s_dofMode = 0; /* 0: Car (Motor), 1: Arm (Servo) */
+static uint8_t s_dofMode = 0;
 
 void Robot_Init(void)
 {
@@ -17,7 +17,6 @@ void Robot_Init(void)
     CAN_Driver_Init();
     OTA_Trigger_Init();
 
-    /* Blink diagnostic LED once on startup */
     LED_On();
     Delay_Ms(150);
     LED_Off();
@@ -27,7 +26,6 @@ void Robot_ProcessCommand(uint16_t cmdId)
 {
     switch (cmdId)
     {
-        /* System & Mode */
         case CMD_EMERGENCY_STOP:
             Motor_Stop();
             LED_Off();
@@ -52,12 +50,10 @@ void Robot_ProcessCommand(uint16_t cmdId)
             break;
 
         case CMD_WIFI_CONNECTED:
-            /* Quick double blink to acknowledge WiFi connection */
             LED_On(); Delay_Ms(80); LED_Off(); Delay_Ms(80);
             LED_On(); Delay_Ms(80); LED_Off();
             break;
 
-        /* Motor / Directional Navigation */
         case CMD_MOTOR_STOP:
             Motor_Stop();
             break;
@@ -110,7 +106,6 @@ void Robot_ProcessCommand(uint16_t cmdId)
             Motor_RightRev();
             break;
 
-        /* Robotic Arm direct opcodes */
         case CMD_SERVO_ARM_UP:
             Servo_LifterStep(+SERVO_STEP_DEG);
             break;
@@ -127,7 +122,6 @@ void Robot_ProcessCommand(uint16_t cmdId)
             Servo_ExtensionStep(-SERVO_STEP_DEG);
             break;
 
-        /* Horn commands - not equipped in App1 */
         case CMD_HORN_ON:
         case CMD_HORN_OFF:
             break;

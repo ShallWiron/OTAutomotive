@@ -1,0 +1,19 @@
+{
+	"nodes":[
+		{"id":"e615f1529cd02d41","type":"group","x":-440,"y":-160,"width":632,"height":520,"label":"BOOT_STM"},
+		{"id":"7856c8da9403ff12","type":"text","text":"OTA","x":-203,"y":-140,"width":250,"height":60},
+		{"id":"456fad77fc1cf0e7","type":"text","text":"FLASH","x":-78,"y":240,"width":250,"height":60},
+		{"id":"f13b6bc385e62185","type":"text","text":"WEB","x":-420,"y":23,"width":250,"height":60},
+		{"id":"8990d0d0ac4c46cf","type":"text","text":"CAN","x":-411,"y":210,"width":250,"height":60},
+		{"id":"01b2849d321ed5a6","x":-1027,"y":240,"width":250,"height":60,"type":"text","text":"# APP_STM"},
+		{"id":"d27234d43553a7f9","type":"text","text":"Toolchain","x":-509,"y":-431,"width":250,"height":60},
+		{"id":"599e764ef3861a11","type":"text","text":"Makefile","x":-1027,"y":-281,"width":250,"height":60}
+	],
+	"edges":[
+		{"id":"2b837274656440da","fromNode":"7856c8da9403ff12","fromSide":"bottom","toNode":"f13b6bc385e62185","toSide":"top"},
+		{"id":"f05c5c3eacabe013","fromNode":"7856c8da9403ff12","fromSide":"bottom","toNode":"8990d0d0ac4c46cf","toSide":"top"},
+		{"id":"9252d3f5e4ba725e","fromNode":"7856c8da9403ff12","fromSide":"bottom","toNode":"456fad77fc1cf0e7","toSide":"top"},
+		{"id":"5663bcd296198f36","fromNode":"01b2849d321ed5a6","fromSide":"bottom","toNode":"e615f1529cd02d41","toSide":"bottom","label":"OTA_Trigger"},
+		{"id":"af08a021347bfac9","fromNode":"e615f1529cd02d41","fromSide":"left","toNode":"01b2849d321ed5a6","toSide":"right","label":"Nhảy"}
+	]
+}

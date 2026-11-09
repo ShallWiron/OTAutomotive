@@ -128,7 +128,6 @@ static void OTA_HandleStartFile(const CanRxMsg *rx)
 
     expected_file_size = file_size;
 
-    /* Nếu ESP32 gửi kèm 2 byte Global CRC16 ở Data[4..5] (DLC >= 6) */
     if (rx->DLC >= 6)
     {
         expected_file_crc = ((uint16_t)rx->Data[4] << 8) | rx->Data[5];
@@ -293,7 +292,6 @@ static void OTA_HandleEndChunk(const CanRxMsg *rx)
         }
     }
 
-    /* 4. Ghi Chunk hợp lệ vào Flash và đọc ngược lại kiểm tra (Verify) */
     uint32_t write_addr = target_base_addr + flash_offset;
     uint32_t written    = Flash_WriteChunk(write_addr, chunk_buffer, expected_chunk_len);
 
@@ -330,7 +328,6 @@ static void OTA_HandleEndChunk(const CanRxMsg *rx)
     }
     UART_SendString(")\r\n");
 
-    /* Reset trạng thái Chunk, đảo LED báo hiệu và gửi ACK */
     chunk_state         = CHUNK_STATE_IDLE;
     buffer_index        = 0;
     expected_chunk_len  = 0;

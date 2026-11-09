@@ -8,7 +8,7 @@
 #include "ota_trigger.h"
 #include "delay.h"
 
-static uint8_t s_dofMode = 0; /* 0: Car (Motor), 1: Crane (Servo) */
+static uint8_t s_dofMode = 0;
 static uint16_t s_lastMovementCmd = CMD_MOTOR_STOP;
 
 void Robot_Init(void)
@@ -30,7 +30,6 @@ void Robot_ProcessCommand(uint16_t cmdId)
 {
     switch (cmdId)
     {
-        /* System & Mode */
         case CMD_EMERGENCY_STOP:
             Motor_Stop();
             LED_Off();
@@ -68,7 +67,6 @@ void Robot_ProcessCommand(uint16_t cmdId)
             OLED_ShowState(s_dofMode, s_lastMovementCmd, Buzzer_IsHornActive());
             break;
 
-        /* Motor & Directional Navigation */
         case CMD_MOTOR_STOP:
             Motor_Stop();
             s_lastMovementCmd = (s_dofMode == 0) ? CMD_MOTOR_STOP : CMD_SERVO_STOP;
@@ -143,7 +141,6 @@ void Robot_ProcessCommand(uint16_t cmdId)
             OLED_ShowState(0, CMD_MOTOR_RIGHT_REV, Buzzer_IsHornActive());
             break;
 
-        /* Direct Servo Opcodes */
         case CMD_SERVO_STOP:
             s_lastMovementCmd = CMD_SERVO_STOP;
             OLED_ShowState(1, CMD_SERVO_STOP, Buzzer_IsHornActive());
@@ -173,7 +170,6 @@ void Robot_ProcessCommand(uint16_t cmdId)
             OLED_ShowState(1, CMD_SERVO_ARM_RETRACT, Buzzer_IsHornActive());
             break;
 
-        /* Horn / Buzzer */
         case CMD_HORN_ON:
             Buzzer_HornOn();
             OLED_ShowState(s_dofMode, s_lastMovementCmd, 1);

@@ -16,17 +16,14 @@ void Bootloader_GPIO_Init(void)
 {
     GPIO_InitTypeDef gpioInit;
 
-    /* Bật clock cho GPIOC (LED) và GPIOB (BOOT1 switch) */
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC | RCC_APB2Periph_GPIOB, ENABLE);
     gpioInit.GPIO_Speed = GPIO_Speed_50MHz;
 
-    /* PC13: LED trạng thái (Active LOW trên Blue Pill) */
     gpioInit.GPIO_Mode = GPIO_Mode_Out_PP;
     gpioInit.GPIO_Pin = GPIO_Pin_13;
     GPIO_Init(GPIOC, &gpioInit);
-    GPIO_ResetBits(GPIOC, GPIO_Pin_13); /* Bật LED (kéo xuống 0) */
+    GPIO_ResetBits(GPIOC, GPIO_Pin_13);
 
-    /* PB2: Đọc trạng thái BOOT1 jumper (Pull-Up nội bộ) */
     gpioInit.GPIO_Mode = GPIO_Mode_IPU;
     gpioInit.GPIO_Pin = GPIO_Pin_2;
     GPIO_Init(GPIOB, &gpioInit);
@@ -34,22 +31,15 @@ void Bootloader_GPIO_Init(void)
 
 uint8_t Bootloader_IsOtaModeRequested(void)
 {
-    /* 1. Kiểm tra cờ OTA trong Backup Register do App gửi trước khi Soft-Reset */
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR | RCC_APB1Periph_BKP, ENABLE);
     if (BKP_ReadBackupRegister(BKP_DR1) == BKP_OTA_FLAG_MAGIC)
     {
-        /* Xóa cờ ngay để lần khởi động sau không bị kẹt trong Bootloader */
         PWR_BackupAccessCmd(ENABLE);
         BKP_WriteBackupRegister(BKP_DR1, 0x0000);
         UART_SendString("[BOOT] Phat hien co Magic Key trong BKP_DR1 -> Vao che do OTA!\r\n");
         return 1;
     }
 
-    /*
-     * 2. Kênh cứu hộ bàn Lab qua jumper PB2 (BOOT1):
-     * - Jumper ở vị trí 0 (GND) -> PB2 = LOW  -> Chạy App bình thường
-     * - Jumper ở vị trí 1 (3V3) -> PB2 = HIGH -> Vào Bootloader chờ OTA
-     */
     if (GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_2) != 0)
     {
         UART_SendString("[BOOT] Jumper BOOT1 (PB2) = 1 -> Vao che do OTA cuu ho!\r\n");
@@ -66,13 +56,11 @@ uint8_t Bootloader_CheckAppValid(uint32_t app_address)
     uint32_t size_kb  = (app_address == FLASH_APP1_ADDRESS) ? FLASH_APP1_SIZE_KB : FLASH_APP2_SIZE_KB;
     uint32_t max_addr = app_address + (size_kb * 1024U);
 
-    /* 1. Kiểm tra MSP nằm trong vùng SRAM hợp lệ (0x20000000 - 0x20005000) */
     if ((msp_val & 0x2FFE0000UL) != 0x20000000UL)
     {
         return 0;
     }
 
-    /* 2. Kiểm tra địa chỉ Reset_Handler nằm trong phân vùng Flash của App và có bit Thumb (bit 0 = 1) */
     if ((reset_val & 0x01UL) == 0UL)
     {
         return 0;
@@ -97,39 +85,30 @@ void Bootloader_JumpToApp(uint32_t app_address)
         return;
     }
 
-    /* Đợi truyền xong toàn bộ chuỗi log UART trước khi tắt ngoại vi */
     UART_WaitTxComplete();
 
-    /* Vô hiệu hóa ngắt toàn cục */
     __disable_irq();
 
-    /* De-init các ngoại vi đã bật trong Bootloader để trả về trạng thái sạch cho App */
     CAN_DeInit(CAN1);
     TIM_DeInit(TIM2);
     USART_DeInit(USART1);
 
-    /* Reset và tắt SysTick */
     SysTick->CTRL = 0;
     SysTick->LOAD = 0;
     SysTick->VAL  = 0;
 
-    /* Vô hiệu hóa và xóa toàn bộ ngắt trong NVIC */
     for (uint8_t i = 0; i < 8; i++)
     {
         NVIC->ICER[i] = 0xFFFFFFFFUL;
         NVIC->ICPR[i] = 0xFFFFFFFFUL;
     }
 
-    /* Dời bảng Vector Table về đầu phân vùng của App */
     SCB->VTOR = app_address;
 
-    /* Thiết lập lại MSP từ Vector Table của App */
     __set_MSP(*(__IO uint32_t *)app_address);
 
-    /* Bật lại ngắt để App tự cấu hình trong SystemInit / main */
     __enable_irq();
 
-    /* Lấy địa chỉ Reset_Handler và nhảy sang App */
     uint32_t JumpAddress = *(__IO uint32_t *)(app_address + 4U);
     pFunction Jump = (pFunction)JumpAddress;
     Jump();

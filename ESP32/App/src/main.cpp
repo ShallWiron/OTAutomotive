@@ -55,7 +55,6 @@ void loop() {
         bool isConnected = (WiFi.status() == WL_CONNECTED);
         if (isConnected && !wasConnected) {
             Serial.printf("[WIFI STA OK] IP: %s\n", WiFi.localIP().toString().c_str());
-            // Báo sang STM32 qua CAN để phát tiếng bíp và hiển thị OLED
             can.sendFrame(CMD_WIFI_CONNECTED, nullptr, 0);
         }
         wasConnected = isConnected;

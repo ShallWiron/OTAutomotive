@@ -12,18 +12,16 @@ void LED_Init(void)
     gpio.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(LED_PORT, &gpio);
 
-    LED_Off(); /* Ban đầu tắt LED */
+    LED_Off();
 }
 
 void LED_On(void)
 {
-    /* PC13 là Active-LOW: Kéo 0 để sáng LED */
     GPIO_ResetBits(LED_PORT, LED_PIN);
 }
 
 void LED_Off(void)
 {
-    /* Kéo 1 để tắt LED */
     GPIO_SetBits(LED_PORT, LED_PIN);
 }
 

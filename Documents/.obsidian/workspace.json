@@ -1,0 +1,223 @@
+{
+  "main": {
+    "id": "616c3603a03d50ca",
+    "type": "split",
+    "children": [
+      {
+        "id": "ad179b3ca368d425",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "505f266f775b6115",
+            "type": "leaf",
+            "state": {
+              "type": "canvas",
+              "state": {
+                "file": "Báo cáo/Hệ thống.canvas",
+                "viewState": {
+                  "x": -297.7834998245531,
+                  "y": 80.44545078052667,
+                  "zoom": -0.5413993040721315
+                }
+              },
+              "icon": "lucide-layout-dashboard",
+              "title": "Hệ thống"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "02d5527ace9a27c6",
+    "type": "split",
+    "children": [
+      {
+        "id": "87676534145c015f",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "1f9c192d6314bc62",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "78dd8af0913bc0f3",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "31fb0c166fa06fef",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "8e7a4db554a03bd0",
+    "type": "split",
+    "children": [
+      {
+        "id": "d30909fca9e67362",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "080efcfdd41aaab6",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "ETC/Đề bài.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks"
+            }
+          },
+          {
+            "id": "3d08337b502b85b6",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "ETC/Đề bài.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links"
+            }
+          },
+          {
+            "id": "02c0fb89f38d938a",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "944d7e6597832ac3",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "d07904f65245e287",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "ETC/Đề bài.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "505f266f775b6115",
+  "lastOpenFiles": [
+    "ETC/Đề bài.md",
+    "Báo cáo/Hệ thống.canvas",
+    "Báo cáo/~$Automotive_BaoCao.docx",
+    "Báo cáo/OTAutomotive_BaoCao.docx",
+    "OTAutomotive_BaoCao.docx",
+    "~WRL0003.tmp",
+    "~WRD0002.tmp",
+    "Quy_Tac_Va_Cau_Truc_Bao_Cao.md",
+    "~$O_CAO_BAI_TAP_LON_OTAUTOMOTIVE.docx",
+    "~WRL0002.tmp",
+    "~WRD0001.tmp",
+    "~WRL0663.tmp",
+    "~WRD0382.tmp",
+    "Images/OTA_Sequence_Diagram_Mermaid_Light.png",
+    "Project_Management.md",
+    "Images/OTA_Sequence_Diagram_Mermaid.svg",
+    "Images/OTA_Sequence_Diagram_Mermaid.png",
+    "Wiring_Diagram.md",
+    "BAO_CAO_BAI_TAP_LON_OTAUTOMOTIVE.md",
+    "Images/controller-area-network-can-bus-bus-arbitration-2.jpg",
+    "Images/Mo_Hinh_Xe_Thuc_Te.jpg",
+    "Images/Logic_Analyzer_CAN_Waveform.png",
+    "Images/FOTA_Cycle_Risk.png",
+    "Images/CAN_Arbitration.png",
+    "Images/STM32_Software_Layers.png",
+    "Images/CAN_2.0A_Standard_Frame.png"
+  ]
+}

@@ -32,4 +32,4 @@ private:
     void scanDirectory(File dir, std::vector<SdEntry>& list);
 };
 
-#endif // SD_MANAGER_H
+#endif

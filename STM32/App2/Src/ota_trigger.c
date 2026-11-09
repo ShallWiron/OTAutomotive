@@ -14,7 +14,6 @@ void OTA_Trigger_Check(CanRxMsg *rx)
 {
     if (rx == 0) return;
 
-    /* 0x600: Bootloader request */
     if (rx->StdId == ID_REQ_BOOT && rx->DLC == 4)
     {
         if (rx->Data[0] == 0xDE && rx->Data[1] == 0xAD &&
@@ -39,7 +38,6 @@ void OTA_Trigger_Check(CanRxMsg *rx)
             NVIC_SystemReset();
         }
     }
-    /* 0x620: Current App query */
     else if (rx->StdId == ID_QUERY_APP)
     {
         CanTxMsg tx;
@@ -49,7 +47,7 @@ void OTA_Trigger_Check(CanRxMsg *rx)
         tx.IDE = CAN_ID_STD;
         tx.DLC = 2;
         tx.Data[0] = OTA_ACK;
-        tx.Data[1] = CURRENT_APP_ID; /* 2 for App2 */
+        tx.Data[1] = CURRENT_APP_ID;
         CAN_Transmit(CAN1, &tx);
     }
 }

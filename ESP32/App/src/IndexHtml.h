@@ -1050,12 +1050,11 @@ static const char INDEX_HTML[] PROGMEM = R"rawliteral(
         let selectedFile = null;
         let selectedFileRaw = null;
         let otaSource = 'ram';
-        let currentCarMode = 'MOTOR'; // 'MOTOR' or 'SERVO'
-        let ledState = false;          // false = OFF, true = ON
+        let currentCarMode = 'MOTOR';
+        let ledState = false;
         let sdFilesList = [];
         let ws = null;
 
-        // HEARTBEAT STATE
         let activeHoldCmd = null;
         let activeHoldPadId = null;
         let heartbeatInterval = null;
@@ -1582,7 +1581,6 @@ static const char INDEX_HTML[] PROGMEM = R"rawliteral(
                     badgeMode.className = 'badge badge-amber';
                     badgeMode.innerText = 'ROBOTIC ARM (0x002)';
                 }
-                // Dim diagonals in arm mode
                 if (pNW) pNW.classList.add('pad-disabled');
                 if (pNE) pNE.classList.add('pad-disabled');
                 if (pSW) pSW.classList.add('pad-disabled');
@@ -1641,8 +1639,6 @@ static const char INDEX_HTML[] PROGMEM = R"rawliteral(
             addLog("EMERGENCY STOP (0x000) broadcast to CAN Bus! All actuators halted.", "err");
         }
 
-        // ==================== HEARTBEAT & ACTION HANDLER ====================
-
         function startHoldAction(cmd, padId) {
             if (!cmd) return;
             if (isHolding && activeHoldCmd === cmd) return;
@@ -1655,10 +1651,8 @@ static const char INDEX_HTML[] PROGMEM = R"rawliteral(
             const padEl = document.getElementById(padId);
             if (padEl) padEl.classList.add('active');
 
-            // Send immediately
             sendCarCommand(cmd);
 
-            // Display in telemetry
             const idEl = document.getElementById('telemetryOpcode');
             if (idEl) idEl.innerText = cmd;
 
@@ -1667,7 +1661,6 @@ static const char INDEX_HTML[] PROGMEM = R"rawliteral(
             if (dot) dot.classList.add('pulsing');
             if (status) status.innerText = 'HOLDING [' + cmd + ']';
 
-            // 100ms cadence heartbeat
             if (heartbeatInterval) clearInterval(heartbeatInterval);
             heartbeatInterval = setInterval(() => {
                 if (isHolding && activeHoldCmd) {
@@ -1720,18 +1713,18 @@ static const char INDEX_HTML[] PROGMEM = R"rawliteral(
                     case 'REV': return '0x042';
                     case 'LEFT': return '0x043';
                     case 'RIGHT': return '0x044';
-                    case 'NW': return '0x047'; // Đảo theo thực tế kiểm thử xe
+                    case 'NW': return '0x047';
                     case 'SW': return '0x046';
-                    case 'NE': return '0x045'; // Đảo theo thực tế kiểm thử xe
+                    case 'NE': return '0x045';
                     case 'SE': return '0x048';
                     default: return '0x040';
                 }
             } else {
                 switch (direction) {
-                    case 'FWD': return '0x081';  // ARM UP
-                    case 'REV': return '0x082';  // ARM DOWN
-                    case 'LEFT': return '0x083'; // ARM EXTEND
-                    case 'RIGHT': return '0x084';// ARM RETRACT
+                    case 'FWD': return '0x081';
+                    case 'REV': return '0x082';
+                    case 'LEFT': return '0x083';
+                    case 'RIGHT': return '0x084';
                     default: return '0x080';
                 }
             }
@@ -1776,7 +1769,6 @@ static const char INDEX_HTML[] PROGMEM = R"rawliteral(
             });
         }
 
-        // BIND ALL DIRECTION BUTTONS
         bindPadPointerEvents('padFWD', 'FWD');
         bindPadPointerEvents('padREV', 'REV');
         bindPadPointerEvents('padLEFT', 'LEFT');
@@ -1794,7 +1786,6 @@ static const char INDEX_HTML[] PROGMEM = R"rawliteral(
             });
         }
 
-        // BIND HORN BUTTON
         const btnHornEl = document.getElementById('btnHorn');
         if (btnHornEl) {
             btnHornEl.addEventListener('pointerdown', (e) => {
@@ -1810,8 +1801,6 @@ static const char INDEX_HTML[] PROGMEM = R"rawliteral(
             btnHornEl.addEventListener('pointercancel', releaseHorn);
             btnHornEl.addEventListener('pointerleave', releaseHorn);
         }
-
-        // ==================== KEYBOARD NAVIGATION ====================
 
         const keyToDirection = {
             'W': 'FWD', 'ARROWUP': 'FWD',
@@ -1857,7 +1846,7 @@ static const char INDEX_HTML[] PROGMEM = R"rawliteral(
             const dir = keyToDirection[k];
             if (dir) {
                 e.preventDefault();
-                if (e.repeat) return; // Handled by 100ms heartbeat
+                if (e.repeat) return;
                 if (currentCarMode === 'SERVO' && ['NW','NE','SW','SE'].includes(dir)) return;
                 const cmd = getPadCommand(dir);
                 startHoldAction(cmd, dirToPadId[dir]);
@@ -1878,7 +1867,6 @@ static const char INDEX_HTML[] PROGMEM = R"rawliteral(
             }
         });
 
-        // Initialize on DOM load
         window.addEventListener('DOMContentLoaded', () => {
             initWebSocket();
             queryActiveApp();
@@ -1890,4 +1878,4 @@ static const char INDEX_HTML[] PROGMEM = R"rawliteral(
 </html>
 )rawliteral";
 
-#endif // INDEX_HTML_H
+#endif

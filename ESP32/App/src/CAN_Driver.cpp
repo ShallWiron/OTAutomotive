@@ -5,7 +5,7 @@ CAN_Driver::CAN_Driver(gpio_num_t tx_pin, gpio_num_t rx_pin)
 
 bool CAN_Driver::begin() {
     twai_general_config_t g_config = TWAI_GENERAL_CONFIG_DEFAULT(_tx_pin, _rx_pin, TWAI_MODE_NORMAL);
-    g_config.rx_queue_len = 64; // Tăng dung lượng hàng đợi nhận để tránh tràn gói khi nạp OTA
+    g_config.rx_queue_len = 64;
 
     twai_timing_config_t t_config = TWAI_TIMING_CONFIG_500KBITS();
     twai_filter_config_t f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
@@ -26,7 +26,7 @@ bool CAN_Driver::sendFrame(uint32_t id, const uint8_t* data, uint8_t len, uint32
 
     twai_message_t tx;
     tx.identifier = id;
-    tx.extd = 0; // Standard 11-bit ID
+    tx.extd = 0;
     tx.rtr = 0;
     tx.data_length_code = len;
 
@@ -46,7 +46,6 @@ bool CAN_Driver::receiveFrame(twai_message_t &rx_msg, uint32_t timeout_ms) {
 void CAN_Driver::clearRxQueue() {
     twai_message_t dummy;
     while (twai_receive(&dummy, 0) == ESP_OK) {
-        // Xả sạch các frame cũ còn tồn trong buffer
     }
 }
 
@@ -65,7 +64,7 @@ bool CAN_Driver::waitResponse(uint32_t response_id, uint8_t expected_val, uint32
         }
         delay(1);
     }
-    return false; // Hết thời gian chờ (Timeout)
+    return false;
 }
 
 bool CAN_Driver::sendWithAck(uint32_t tx_id, const uint8_t* data, uint8_t len,
@@ -82,4 +81,3 @@ bool CAN_Driver::sendWithAck(uint32_t tx_id, const uint8_t* data, uint8_t len,
     }
     return false;
 }
-

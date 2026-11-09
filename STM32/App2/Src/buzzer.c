@@ -10,7 +10,6 @@ static volatile uint32_t s_beepTicks = 0;
 
 void Buzzer_Init(void)
 {
-    /* 1. GPIO Pin PA0 Configuration */
     RCC_APB2PeriphClockCmd(BUZZER_CLK, ENABLE);
 
     GPIO_InitTypeDef gpio;
@@ -21,13 +20,12 @@ void Buzzer_Init(void)
 
     GPIO_ResetBits(BUZZER_PORT, BUZZER_PIN);
 
-    /* 2. TIM4 Hardware Timer Configuration (5 kHz toggle rate = 2.5 kHz Tone) */
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
 
     TIM_TimeBaseInitTypeDef tb;
     TIM_TimeBaseStructInit(&tb);
-    tb.TIM_Prescaler     = 72 - 1;  /* 1 MHz clock */
-    tb.TIM_Period        = 200 - 1; /* 200 us period -> 5000 Hz ISR */
+    tb.TIM_Prescaler     = 72 - 1;
+    tb.TIM_Period        = 200 - 1;
     tb.TIM_CounterMode   = TIM_CounterMode_Up;
     tb.TIM_ClockDivision = TIM_CKD_DIV1;
     TIM_TimeBaseInit(TIM4, &tb);
@@ -35,7 +33,6 @@ void Buzzer_Init(void)
     TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
     TIM_ITConfig(TIM4, TIM_IT_Update, ENABLE);
 
-    /* 3. NVIC Interrupt Configuration */
     NVIC_InitTypeDef nvic;
     nvic.NVIC_IRQChannel = TIM4_IRQn;
     nvic.NVIC_IRQChannelPreemptionPriority = 2;

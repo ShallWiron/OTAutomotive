@@ -37,7 +37,6 @@ uint8_t Flash_ErasePartition(uint32_t start_address, uint32_t size_in_kb)
 
     for (uint32_t i = 0; i < size_in_kb; i++)
     {
-        /* Mỗi trang trên STM32F103 Medium-Density cách nhau 1 KB (1024 bytes) */
         uint32_t page_addr = start_address + (i * 1024U);
         if (FLASH_ErasePage(page_addr) != FLASH_COMPLETE)
         {

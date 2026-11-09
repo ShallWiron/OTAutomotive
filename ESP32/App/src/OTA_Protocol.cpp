@@ -30,11 +30,10 @@ bool OTA_Protocol::triggerBootloader() {
 
     _can.clearRxQueue();
     if (_can.sendWithAck(CAN_ID_REQ_BOOT, magicKey, 4, CAN_ID_RESPONSE, OTA_ACK, 500, 2)) {
-        delay(200); // Chờ STM32 Soft-Reset vào Bootloader
+        delay(200);
         return true;
     }
 
-    // Nếu timeout, có thể STM32 đã ở sẵn trong Bootloader
     return false;
 }
 
@@ -53,7 +52,6 @@ bool OTA_Protocol::burstChunkData(const uint8_t* chunkBuf, size_t chunkLen) {
         sent += len;
         packet_idx++;
 
-        // Delay 3ms giữa các frame, đồng thời kiểm tra NACK sớm từ STM32
         uint32_t wait_start = millis();
         while (millis() - wait_start < 3) {
             twai_message_t rx;
@@ -74,7 +72,6 @@ bool OTA_Protocol::sendChunk(const uint8_t* chunkBuf, size_t chunkLen, uint16_t 
     for (uint8_t attempt = 1; attempt <= MAX_CHUNK_RETRIES; attempt++) {
         _can.clearRxQueue();
 
-        // 1. Gửi START_CHUNK kèm độ dài chunk
         uint8_t startPayload[2] = {
             (uint8_t)((chunkLen >> 8) & 0xFF),
             (uint8_t)(chunkLen & 0xFF)
@@ -85,16 +82,14 @@ bool OTA_Protocol::sendChunk(const uint8_t* chunkBuf, size_t chunkLen, uint16_t 
         }
         delay(5);
 
-        // 2. Bắn chuỗi các frame data của Chunk
         if (!burstChunkData(chunkBuf, chunkLen)) {
             delay(30);
             continue;
         }
 
-        // 3. Gửi END_CHUNK kèm mã Chunk CRC16
         uint16_t crcToSend = chunkCrc;
         if (_injectCrcError && chunkIndex == 2 && attempt == 1) {
-            crcToSend ^= 0xFFFFU; // Chỉ tiêm lỗi ở lần gửi đầu của chunk 2 để kiểm thử retry
+            crcToSend ^= 0xFFFFU;
         }
 
         uint8_t endPayload[2] = {
@@ -106,7 +101,6 @@ bool OTA_Protocol::sendChunk(const uint8_t* chunkBuf, size_t chunkLen, uint16_t 
             continue;
         }
 
-        // 4. Chờ STM32 ghi Flash & gửi ACK (tối đa 3000ms như App_OTA)
         if (_can.waitResponse(CAN_ID_RESPONSE, OTA_ACK, 3000)) {
             return true;
         }
@@ -128,7 +122,7 @@ bool OTA_Protocol::executeOtaSequence(size_t fileSize, uint16_t globalCrc, uint8
     _lastError = "";
 
     if (cb) cb(2, "Connecting Bootloader (CAN 0x600)...");
-    triggerBootloader(); // Kích hoạt reset, nếu đã ở bootloader thì bỏ qua
+    triggerBootloader();
 
     if (cb) cb(10, "Erasing target Flash sector App " + String(appId) + " (56 KB)...");
     uint8_t otaPayload[1] = { appId };
@@ -224,7 +218,6 @@ bool OTA_Protocol::flashFromFile(File& file, uint8_t appId, OTA_ProgressCallback
         return false;
     }
 
-    // 1. Tính Global CRC16 chuẩn Modbus (Seed 0xFFFFU)
     uint16_t globalCrc = 0xFFFFU;
     uint8_t buffer[CHUNK_SIZE];
     file.seek(0);
