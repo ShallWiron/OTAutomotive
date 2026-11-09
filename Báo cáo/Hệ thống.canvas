@@ -7,7 +7,11 @@
 		{"id":"8990d0d0ac4c46cf","type":"text","text":"CAN","x":-411,"y":210,"width":250,"height":60},
 		{"id":"01b2849d321ed5a6","x":-1027,"y":240,"width":250,"height":60,"type":"text","text":"# APP_STM"},
 		{"id":"d27234d43553a7f9","type":"text","text":"Toolchain","x":-509,"y":-431,"width":250,"height":60},
-		{"id":"599e764ef3861a11","type":"text","text":"Makefile","x":-1027,"y":-281,"width":250,"height":60}
+		{"id":"599e764ef3861a11","type":"text","text":"Makefile","x":-1027,"y":-281,"width":250,"height":60},
+		{"id":"6672098fffb348c4","x":607,"y":-215,"width":250,"height":60,"type":"text","text":"# 1. Tổng quan"},
+		{"id":"8f6c744f2ec75903","x":955,"y":-174,"width":250,"height":60,"type":"text","text":"# 2. OTA và CAN"},
+		{"id":"9124d573e1bb464b","x":828,"y":-23,"width":452,"height":63,"type":"text","text":"# 3. Hệ thống - Bootloader và App"},
+		{"id":"d8441cb00cf336a7","x":549,"y":105,"width":250,"height":60,"type":"text","text":"# 4. Rollback"}
 	],
 	"edges":[
 		{"id":"2b837274656440da","fromNode":"7856c8da9403ff12","fromSide":"bottom","toNode":"f13b6bc385e62185","toSide":"top"},
