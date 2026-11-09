@@ -10,11 +10,7 @@
 #include "stm32f10x_pwr.h"
 #include "stm32f10x_bkp.h"
 
-/* ==================== Typedef nội bộ ==================== */
-
 typedef void (*pFunction)(void);
-
-/* ==================== GPIO Init ==================== */
 
 void Bootloader_GPIO_Init(void)
 {
@@ -35,8 +31,6 @@ void Bootloader_GPIO_Init(void)
     gpioInit.GPIO_Pin = GPIO_Pin_2;
     GPIO_Init(GPIOB, &gpioInit);
 }
-
-/* ==================== Boot Decision ==================== */
 
 uint8_t Bootloader_IsOtaModeRequested(void)
 {
@@ -65,13 +59,12 @@ uint8_t Bootloader_IsOtaModeRequested(void)
     return 0;
 }
 
-/* ==================== Kiểm tra App hợp lệ ==================== */
-
 uint8_t Bootloader_CheckAppValid(uint32_t app_address)
 {
     uint32_t msp_val   = *(__IO uint32_t *)app_address;
     uint32_t reset_val = *(__IO uint32_t *)(app_address + 4U);
-    uint32_t max_addr  = app_address + (FLASH_APP1_SIZE_KB * 1024U);
+    uint32_t size_kb  = (app_address == FLASH_APP1_ADDRESS) ? FLASH_APP1_SIZE_KB : FLASH_APP2_SIZE_KB;
+    uint32_t max_addr = app_address + (size_kb * 1024U);
 
     /* 1. Kiểm tra MSP nằm trong vùng SRAM hợp lệ (0x20000000 - 0x20005000) */
     if ((msp_val & 0x2FFE0000UL) != 0x20000000UL)
@@ -93,8 +86,6 @@ uint8_t Bootloader_CheckAppValid(uint32_t app_address)
 
     return 1;
 }
-
-/* ==================== Jump To App ==================== */
 
 void Bootloader_JumpToApp(uint32_t app_address)
 {
@@ -144,8 +135,6 @@ void Bootloader_JumpToApp(uint32_t app_address)
     Jump();
 }
 
-/* ==================== Dual-Bank Boot & Rollback ==================== */
-
 void Bootloader_BootActiveOrRollback(void)
 {
     uint8_t  active_id   = Flash_GetActivePartition();
@@ -165,7 +154,6 @@ void Bootloader_BootActiveOrRollback(void)
         Bootloader_JumpToApp(active_addr);
     }
 
-    /* Nếu phân vùng Active bị lỗi/trống (ví dụ mất nguồn khi đang OTA), thực hiện Rollback */
     uint8_t  fallback_id   = (active_id == PARTITION_APP1) ? PARTITION_APP2 : PARTITION_APP1;
     uint32_t fallback_addr = Flash_GetPartitionAddress(fallback_id);
 
@@ -179,7 +167,6 @@ void Bootloader_BootActiveOrRollback(void)
 
     if (Bootloader_CheckAppValid(fallback_addr))
     {
-        /* Cập nhật lại Option Bytes về bản Firmware dự phòng đang hoạt động tốt */
         Flash_SetActivePartition(fallback_id);
         UART_SendString("[ROLLBACK] Khoi phuc thanh cong! Jumping to App ");
         UART_SendDec(fallback_id);
@@ -190,8 +177,6 @@ void Bootloader_BootActiveOrRollback(void)
     UART_SendString("[BOOT ERROR] Ca 2 phan vung App 1 va App 2 deu trong/loi!\r\n");
     UART_SendString("[BOOT] O lai che do Bootloader cho nhan ban cap nhat OTA qua CAN...\r\n");
 }
-
-/* ==================== LED ==================== */
 
 void Bootloader_ToggleLED(void)
 {

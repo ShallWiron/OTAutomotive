@@ -1,14 +1,13 @@
-/**
- * @file    servo.c
- * @brief   Trien khai driver Timer 3 PWM dieu khien Servo
- */
-
 #include "servo.h"
 #include "stm32f10x_rcc.h"
 #include "stm32f10x_gpio.h"
 #include "stm32f10x_tim.h"
 
-static uint16_t Angle_To_Us(int angle)
+static int16_t s_lifterAngle = 0;
+static int16_t s_extensionAngle = 0;
+static int16_t s_gripperAngle = 0;
+
+static uint16_t Angle_To_Compare(int16_t angle)
 {
     if (angle < 0)   { angle = 0; }
     if (angle > 180) { angle = 180; }
@@ -17,16 +16,12 @@ static uint16_t Angle_To_Us(int angle)
 
 void Servo_Init(void)
 {
-    TIM_TimeBaseInitTypeDef tb;
-    TIM_OCInitTypeDef       oc;
-    GPIO_InitTypeDef        gpio;
-
-    /* 1. Bat Clock TIM3 va cac Port GPIO liên quan */
+    /* 1. Cấp clock TIM3, GPIOA, GPIOB */
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB | RCC_APB2Periph_AFIO, ENABLE);
 
-    /* 2. Cau hinh GPIO Alternate Function Push-Pull:
-     *    PA6 = TIM3_CH1, PA7 = TIM3_CH2, PB0 = TIM3_CH3 */
+    /* 2. Cấu hình GPIO PA6, PA7, PB0 (AF Push-Pull 50MHz) */
+    GPIO_InitTypeDef gpio;
     gpio.GPIO_Mode  = GPIO_Mode_AF_PP;
     gpio.GPIO_Speed = GPIO_Speed_50MHz;
 
@@ -36,22 +31,22 @@ void Servo_Init(void)
     gpio.GPIO_Pin   = GPIO_Pin_0;
     GPIO_Init(GPIOB, &gpio);
 
-    /* 3. Cau hinh Timer 3 TimeBase:
-     *    Prescaler: 72 MHz / 72 = 1 MHz (1 tick = 1 us)
-     *    Period   : 20000 us = 20 ms -> 50 Hz */
+    /* 3. Cấu hình Timer 3 Base: 72MHz / 72 = 1MHz (1us/tick), Period = 20000us = 50Hz */
+    TIM_TimeBaseInitTypeDef tb;
     TIM_TimeBaseStructInit(&tb);
-    tb.TIM_Prescaler     = (uint16_t)(SERVO_TIM_CLK_HZ / 1000000UL - 1UL);
-    tb.TIM_Period        = SERVO_PERIOD_US - 1U;
+    tb.TIM_Prescaler     = 72 - 1;
+    tb.TIM_Period        = 20000 - 1;
     tb.TIM_ClockDivision = TIM_CKD_DIV1;
     tb.TIM_CounterMode   = TIM_CounterMode_Up;
     TIM_TimeBaseInit(TIM3, &tb);
 
-    /* 4. Cau hinh PWM Mode 1 tren ca 3 channel */
+    /* 4. Cấu hình PWM Mode 1 cho CH1, CH2, CH3 */
+    TIM_OCInitTypeDef oc;
     TIM_OCStructInit(&oc);
     oc.TIM_OCMode      = TIM_OCMode_PWM1;
     oc.TIM_OutputState = TIM_OutputState_Enable;
     oc.TIM_OCPolarity  = TIM_OCPolarity_High;
-    oc.TIM_Pulse       = Angle_To_Us(0);
+    oc.TIM_Pulse       = Angle_To_Compare(0);
 
     TIM_OC1Init(TIM3, &oc);
     TIM_OC2Init(TIM3, &oc);
@@ -62,20 +57,69 @@ void Servo_Init(void)
     TIM_OC3PreloadConfig(TIM3, TIM_OCPreload_Enable);
     TIM_ARRPreloadConfig(TIM3, ENABLE);
 
-    /* 5. Cho phep Timer 3 dem */
     TIM_Cmd(TIM3, ENABLE);
+
+    /* Đặt góc ban đầu về 0 độ */
+    Servo_SetLifterAngle(0);
+    Servo_SetExtensionAngle(0);
+    Servo_SetGripperAngle(0);
 }
 
-void Servo_WriteUs(uint8_t ch, uint16_t us)
+void Servo_SetLifterAngle(int16_t angle)
 {
-    if      (ch == SERVO_CH_LIFTER)    { TIM_SetCompare1(TIM3, us); }
-    else if (ch == SERVO_CH_EXTENSION) { TIM_SetCompare2(TIM3, us); }
-    else if (ch == SERVO_CH_GRIPPER)   { TIM_SetCompare3(TIM3, us); }
+    if (angle < 0) { angle = 0; }
+    if (angle > SERVO_LIFTER_MAX_DEG) { angle = SERVO_LIFTER_MAX_DEG; }
+    s_lifterAngle = angle;
+    TIM_SetCompare1(TIM3, Angle_To_Compare(s_lifterAngle));
 }
 
-void Servo_WriteAngle(uint8_t ch, int angle)
+void Servo_SetExtensionAngle(int16_t angle)
 {
-    uint16_t us = Angle_To_Us(angle);
-    Servo_WriteUs(ch, us);
+    if (angle < 0) { angle = 0; }
+    if (angle > SERVO_EXTENSION_MAX_DEG) { angle = SERVO_EXTENSION_MAX_DEG; }
+    s_extensionAngle = angle;
+    TIM_SetCompare2(TIM3, Angle_To_Compare(s_extensionAngle));
 }
 
+void Servo_SetGripperAngle(int16_t angle)
+{
+    if (angle < 0) { angle = 0; }
+    if (angle > 180) { angle = 180; }
+    s_gripperAngle = angle;
+    TIM_SetCompare3(TIM3, Angle_To_Compare(s_gripperAngle));
+}
+
+void Servo_LifterStep(int8_t step)
+{
+    Servo_SetLifterAngle(s_lifterAngle + step);
+}
+
+void Servo_ExtensionStep(int8_t step)
+{
+    Servo_SetExtensionAngle(s_extensionAngle + step);
+}
+
+void Servo_GripperOpen(void)
+{
+    Servo_SetGripperAngle(SERVO_GRIPPER_OPEN_DEG);
+}
+
+void Servo_GripperClose(void)
+{
+    Servo_SetGripperAngle(SERVO_GRIPPER_CLOSE_DEG);
+}
+
+int16_t Servo_GetLifterAngle(void)
+{
+    return s_lifterAngle;
+}
+
+int16_t Servo_GetExtensionAngle(void)
+{
+    return s_extensionAngle;
+}
+
+int16_t Servo_GetGripperAngle(void)
+{
+    return s_gripperAngle;
+}

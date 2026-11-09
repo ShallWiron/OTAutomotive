@@ -2,8 +2,6 @@
 #include "stm32f10x.h"
 #include "stm32f10x_flash.h"
 
-/* ==================== Tra cứu phân vùng ==================== */
-
 uint32_t Flash_GetPartitionAddress(uint8_t partition_id)
 {
     if (partition_id == PARTITION_APP1)
@@ -30,8 +28,6 @@ uint32_t Flash_GetPartitionSizeKB(uint8_t partition_id)
     return 0;
 }
 
-/* ==================== Xóa Flash ==================== */
-
 uint8_t Flash_ErasePartition(uint32_t start_address, uint32_t size_in_kb)
 {
     uint8_t ok = 1;
@@ -53,8 +49,6 @@ uint8_t Flash_ErasePartition(uint32_t start_address, uint32_t size_in_kb)
     FLASH_Lock();
     return ok;
 }
-
-/* ==================== Ghi & Verify Flash ==================== */
 
 uint32_t Flash_WriteChunk(uint32_t address, const uint8_t *data, uint32_t len)
 {
@@ -93,13 +87,10 @@ uint8_t Flash_VerifyChunk(uint32_t address, const uint8_t *data, uint32_t len)
     return 1;
 }
 
-/* ==================== Option Bytes ==================== */
-
 uint8_t Flash_GetActivePartition(void)
 {
     uint8_t active_app = *(volatile uint8_t *)FLASH_OB_DATA0_ADDR;
 
-    /* Nếu là lần đầu chạy hoặc dữ liệu trống (0xFF), mặc định chọn App 1 */
     if (active_app != PARTITION_APP1 && active_app != PARTITION_APP2)
     {
         active_app = PARTITION_APP1;
@@ -115,7 +106,6 @@ void Flash_SetActivePartition(uint8_t partition_id)
         return;
     }
 
-    /* Chỉ xóa & ghi lại Option Bytes nếu giá trị mới khác giá trị hiện tại */
     uint8_t current_id = *(volatile uint8_t *)FLASH_OB_DATA0_ADDR;
     if (current_id == partition_id)
     {

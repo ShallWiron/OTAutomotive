@@ -1,45 +1,41 @@
-/**
- * @file    servo.h
- * @brief   Driver phan cung dieu khien Servo su dung Timer 3 PWM 50Hz (STM32F103)
- */
-
 #ifndef SERVO_H
 #define SERVO_H
 
 #include <stdint.h>
 #include "stm32f10x.h"
 
-/* Tan so PWM chuan cho RC Servo: 50Hz (Chu ky 20ms = 20000us) */
-#define SERVO_TIM_CLK_HZ     72000000UL /* Clock TIM3 = 72 MHz */
-#define SERVO_PERIOD_US      20000U     /* 20 ms */
-
-/* Gioi han do rong xung microsecond (544us ~ 0 do, 2400us ~ 180 do) */
+/*
+ * CẤU HÌNH SERVO MG90S QUA TIMER 3 PWM 50Hz (Chu kỳ 20ms = 20000us)
+ * A6 - D10 L298P : TIM3_CH1 (Servo Nâng - Trái, 0..70 độ)
+ * A7 - D11 L298P : TIM3_CH2 (Servo Duỗi - Phải, 0..70 độ)
+ * B0 - D12 L298P : TIM3_CH3 (Servo Kẹp, 0 độ hoặc 90 độ)
+ */
 #define SERVO_MIN_US         544L
 #define SERVO_MAX_US         2400L
 
-/* Dinh nghia cac kenh phan cung tren Timer 3 */
-#define SERVO_CH_LIFTER      0          /* TIM3_CH1 = PA6 : Nang / ha tay     */
-#define SERVO_CH_EXTENSION   1          /* TIM3_CH2 = PA7 : Keo dai / thu tay */
-#define SERVO_CH_GRIPPER     2          /* TIM3_CH3 = PB0 : Mo / dong kep     */
+#define SERVO_LIFTER_MAX_DEG     70
+#define SERVO_EXTENSION_MAX_DEG  70
+#define SERVO_GRIPPER_OPEN_DEG   90
+#define SERVO_GRIPPER_CLOSE_DEG  0
 
-/**
- * @brief  Khoi tao Timer 3 va cac chan GPIO (PA6, PA7, PB0) o che do PWM 50Hz
- */
+/* Bước quay mỗi lần nhận lệnh (tăng từ 1 lên 3 độ để quay nhanh và mượt hơn) */
+#define SERVO_STEP_DEG           3
+
 void Servo_Init(void);
 
-/**
- * @brief  Xuat goc quay (0 - 180 do) cho kenh servo chi dinh
- * @param  ch: SERVO_CH_LIFTER, SERVO_CH_EXTENSION, hoac SERVO_CH_GRIPPER
- * @param  angle: Goc tu 0 den 180 do
- */
-void Servo_WriteAngle(uint8_t ch, int angle);
+/* Điều khiển trực tiếp góc (độ) */
+void Servo_SetLifterAngle(int16_t angle);      /* Servo Trái - Nâng (0..70) */
+void Servo_SetExtensionAngle(int16_t angle);   /* Servo Phải - Duỗi (0..70) */
+void Servo_SetGripperAngle(int16_t angle);     /* Servo Kẹp (0 hoặc 90) */
 
-/**
- * @brief  Xuat do rong xung truc tiep (microsecond) cho kenh servo
- * @param  ch: Kenh servo
- * @param  us: Do rong xung (544 - 2400 us)
- */
-void Servo_WriteUs(uint8_t ch, uint16_t us);
+/* Lệnh tăng giảm bước (+1, -1) */
+void Servo_LifterStep(int8_t step);
+void Servo_ExtensionStep(int8_t step);
+void Servo_GripperOpen(void);
+void Servo_GripperClose(void);
+
+int16_t Servo_GetLifterAngle(void);
+int16_t Servo_GetExtensionAngle(void);
+int16_t Servo_GetGripperAngle(void);
 
 #endif /* SERVO_H */
-

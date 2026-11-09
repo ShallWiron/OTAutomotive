@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automotive Gateway | ESP32-STM32</title>
+    <style>
+        :root {
+            /* Dark Theme (Default) */
+            --bg-body: #0d0d0d;
+            --panel-bg: #141414;
+            --panel-header: #1a1a1a;
+            --panel-border: #282828;
+            --panel-border-subtle: #1f1f1f;
+            --text-main: #b0b0b0;
+            --text-heading: #f0f0f0;
+            --text-muted: #666666;
+            --btn-bg: #1f1f1f;
+            --btn-border: #333333;
+            --btn-hover: #292929;
+            --btn-primary-bg: #e5e5e5;
+            --btn-primary-text: #0d0d0d;
+            --btn-primary-border: #ffffff;
+            --btn-primary-hover: #ffffff;
+            --code-bg: #080808;
+            --badge-bg: #1c1c1c;
+            --badge-border: #333333;
+            --badge-text: #d0d0d0;
+            --badge-active-bg: #2a2a2a;
+            --badge-active-border: #555555;
+            --badge-active-text: #ffffff;
+            --badge-target-bg: #181818;
+            --badge-target-border: #303030;
+            --badge-target-text: #888888;
+            --danger-bg: #221313;
+            --danger-border: #442020;
+            --danger-text: #e07070;
+            --danger-hover: #351a1a;
+            --progress-bar-bg: #080808;
+            --progress-bar-fill: #e5e5e5;
+            --log-line-muted: #666666;
+            --log-line-info: #aaaaaa;
+            --log-line-success: #f0f0f0;
+            --log-line-warn: #c0c0c0;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            --font-mono: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+        }
+
+        [data-theme="light"] {
+            /* Light Theme */
+            --bg-body: #f4f4f5;
+            --panel-bg: #ffffff;
+            --panel-header: #fafafa;
+            --panel-border: #e4e4e7;
+            --panel-border-subtle: #f0f0f2;
+            --text-main: #52525b;
+            --text-heading: #18181b;
+            --text-muted: #8b8b93;
+            --btn-bg: #f4f4f5;
+            --btn-border: #d4d4d8;
+            --btn-hover: #e4e4e7;
+            --btn-primary-bg: #18181b;
+            --btn-primary-text: #ffffff;
+            --btn-primary-border: #18181b;
+            --btn-primary-hover: #27272a;
+            --code-bg: #f8f8f9;
+            --badge-bg: #f4f4f5;
+            --badge-border: #d4d4d8;
+            --badge-text: #3f3f46;
+            --badge-active-bg: #18181b;
+            --badge-active-border: #18181b;
+            --badge-active-text: #ffffff;
+            --badge-target-bg: #f4f4f5;
+            --badge-target-border: #e4e4e7;
+            --badge-target-text: #8b8b93;
+            --danger-bg: #fef2f2;
+            --danger-border: #fecaca;
+            --danger-text: #b91c1c;
+            --danger-hover: #fee2e2;
+            --progress-bar-bg: #e4e4e7;
+            --progress-bar-fill: #18181b;
+            --log-line-muted: #8b8b93;
+            --log-line-info: #3f3f46;
+            --log-line-success: #18181b;
+            --log-line-warn: #52525b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            font-family: var(--font-family);
+            color: var(--text-main);
+            font-size: 13px;
+            line-height: 1.5;
+            padding-bottom: 30px;
+            transition: background-color 0.15s ease, color 0.15s ease;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            background-color: var(--panel-header);
+            border-bottom: 1px solid var(--panel-border);
+            padding: 10px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-heading);
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-decoration: none;
+            text-transform: uppercase;
+        }
+
+        .navbar-brand .subtext {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-muted);
+            letter-spacing: 0.2px;
+        }
+
+        .navbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .navbar-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            font-family: var(--font-mono);
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 8px;
+            background: var(--code-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 3px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .status-pill.active {
+            color: var(--text-heading);
+            border-color: var(--btn-border);
+        }
+
+        .indicator {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: var(--text-muted);
+        }
+
+        .indicator.online {
+            background-color: var(--text-heading);
+        }
+
+        /* CONTAINER */
+        .container {
+            max-width: 1020px;
+            margin: 18px auto 0 auto;
+            padding: 0 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* NAV TABS */
+        .nav-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--panel-border);
+            gap: 4px;
+        }
+
+        .nav-tab-item {
+            padding: 8px 18px;
+            border: 1px solid transparent;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.1s ease;
+        }
+
+        .nav-tab-item:hover {
+            color: var(--text-heading);
+            background: var(--btn-hover);
+        }
+
+        .nav-tab-item.active {
+            color: var(--text-heading);
+            background: var(--panel-bg);
+            border-color: var(--panel-border);
+            border-bottom-color: var(--panel-bg);
+            margin-bottom: -1px;
+        }
+
+        /* PANELS */
+        .panel {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .panel-heading {
+            background-color: var(--panel-header);
+            border-bottom: 1px solid var(--panel-border);
+            padding: 8px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .panel-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-heading);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .panel-body {
+            padding: 14px;
+        }
+
+        .row-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        /* SOURCE SEGMENTED SWITCH */
+        .source-switch {
+            display: flex;
+            border: 1px solid var(--panel-border);
+            background: var(--code-bg);
+            border-radius: 3px;
+            padding: 2px;
+            margin-bottom: 12px;
+            gap: 2px;
+        }
+
+        .btn-source {
+            flex: 1;
+            padding: 6px 10px;
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all 0.1s;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            text-align: center;
+        }
+
+        .btn-source.active {
+            background: var(--panel-bg);
+            color: var(--text-heading);
+            border-color: var(--btn-border);
+        }
+
+        /* DATA TABLE */
+        .stat-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .stat-table tr {
+            border-bottom: 1px solid var(--panel-border-subtle);
+        }
+
+        .stat-table tr:last-child {
+            border-bottom: none;
+        }
+
+        .stat-table td {
+            padding: 7px 4px;
+            vertical-align: middle;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 12px;
+            width: 45%;
+        }
+
+        .stat-value {
+            text-align: right;
+            font-weight: 600;
+            color: var(--text-heading);
+            font-family: var(--font-mono);
+            font-size: 12px;
+        }
+
+        /* BADGES */
+        .badge {
+            display: inline-block;
+            padding: 2px 7px;
+            border-radius: 2px;
+            font-size: 11px;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            background: var(--badge-bg);
+            border: 1px solid var(--badge-border);
+            color: var(--badge-text);
+        }
+
+        .badge-active {
+            background: var(--badge-active-bg);
+            border-color: var(--badge-active-border);
+            color: var(--badge-active-text);
+        }
+
+        .badge-target {
+            background: var(--badge-target-bg);
+            border-color: var(--badge-target-border);
+            color: var(--badge-target-text);
+        }
+
+        /* BUTTONS */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px 12px;
+            font-size: 11.5px;
+            font-weight: 600;
+            border-radius: 3px;
+            cursor: pointer;
+            border: 1px solid var(--btn-border);
+            background-color: var(--btn-bg);
+            color: var(--text-heading);
+            text-decoration: none;
+            transition: all 0.1s ease;
+        }
+
+        .btn:hover {
+            background-color: var(--btn-hover);
+        }
+
+        .btn-primary {
+            background-color: var(--btn-primary-bg);
+            color: var(--btn-primary-text);
+            border-color: var(--btn-primary-border);
+            font-weight: 700;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--btn-primary-hover);
+            border-color: var(--btn-primary-hover);
+        }
+
+        .btn-danger {
+            background-color: var(--danger-bg);
+            color: var(--danger-text);
+            border-color: var(--danger-border);
+        }
+
+        .btn-danger:hover {
+            background-color: var(--danger-hover);
+        }
+
+        .btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* FORM CONTROLS */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .form-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .form-control-file {
+            border: 1px solid var(--panel-border);
+            background: var(--code-bg);
+            border-radius: 3px;
+            padding: 7px 10px;
+            font-size: 12px;
+            color: var(--text-main);
+            width: 100%;
+            font-family: var(--font-mono);
+        }
+
+        select.form-control-file {
+            cursor: pointer;
+        }
+
+        /* PROGRESS BAR */
+        .progress-container {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11.5px;
+            font-family: var(--font-mono);
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background-color: var(--progress-bar-bg);
+            border-radius: 2px;
+            overflow: hidden;
+            border: 1px solid var(--panel-border);
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background-color: var(--progress-bar-fill);
+            width: 0%;
+            transition: width 0.12s ease;
+        }
+
+        /* CONSOLE */
+        .log-box {
+            background-color: var(--code-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 3px;
+            padding: 9px 12px;
+            height: 150px;
+            overflow-y: auto;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .log-line { color: var(--log-line-muted); }
+        .log-line.info { color: var(--log-line-info); }
+        .log-line.success { color: var(--log-line-success); }
+        .log-line.warn { color: var(--log-line-warn); }
+        .log-line.err { color: var(--danger-text); }
+
+        /* CONTROL VIEW */
+        .control-grid {
+            display: grid;
+            grid-template-columns: 270px 1fr;
+            gap: 16px;
+        }
+
+        .dpad-container {
+            display: grid;
+            grid-template-columns: 78px 78px 78px;
+            grid-template-rows: 52px 52px 52px;
+            gap: 6px;
+            justify-content: center;
+            align-content: center;
+            padding: 10px;
+            background: var(--code-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 4px;
+        }
+
+        .btn-pad {
+            background: var(--panel-header);
+            border: 1px solid var(--btn-border);
+            border-radius: 3px;
+            color: var(--text-heading);
+            font-size: 11.5px;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+            transition: all 0.08s;
+        }
+
+        .btn-pad kbd {
+            font-size: 9px;
+            color: var(--text-muted);
+            margin-top: 1px;
+            font-weight: 600;
+        }
+
+        .btn-pad:active, .btn-pad.active {
+            background: var(--btn-primary-bg);
+            border-color: var(--btn-primary-border);
+            color: var(--btn-primary-text);
+        }
+
+        .btn-pad.pad-stop {
+            background: var(--danger-bg);
+            border-color: var(--danger-border);
+            color: var(--danger-text);
+        }
+
+        .btn-pad.pad-stop:active, .btn-pad.pad-stop.active {
+            background: var(--danger-text);
+            border-color: var(--danger-text);
+            color: var(--panel-bg);
+        }
+
+        @media (max-width: 720px) {
+            .row-grid, .control-grid { grid-template-columns: 1fr; }
+            .navbar { flex-direction: column; gap: 8px; align-items: flex-start; }
+            .navbar-actions { width: 100%; justify-content: space-between; }
+            .navbar-status { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <header class="navbar">
+        <a href="#" class="navbar-brand">
+            <span>Automotive Gateway</span>
+            <span class="subtext">ESP32 / STM32 CAN Bus</span>
+        </a>
+        <div class="navbar-actions">
+            <div class="navbar-status">
+                <div class="status-pill active">
+                    <span class="indicator online"></span>
+                    <span>CAN: 500 KBPS</span>
+                </div>
+                <div class="status-pill">
+                    <span>WIFI: AP MODE</span>
+                </div>
+                <div class="status-pill active" id="pillWsStatus">
+                    <span class="indicator online" id="dotWs"></span>
+                    <span id="txtWsStatus">WS: SIMULATED</span>
+                </div>
+            </div>
+            <button class="btn" id="btnThemeToggle" onclick="toggleTheme()" style="padding:3px 10px; font-size:11px; font-family:var(--font-mono);">
+                THEME: DARK
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="container">
+
+        <!-- NAV TABS -->
+        <nav class="nav-tabs">
+            <button id="tabBtnOta" class="nav-tab-item active" onclick="switchTab('ota')">
+                Firmware OTA
+            </button>
+            <button id="tabBtnControl" class="nav-tab-item" onclick="switchTab('control')">
+                Vehicle Control
+            </button>
+        </nav>
+
+        <!-- ==================== TAB 1: FIRMWARE OTA ==================== -->
+        <section id="tabOta" class="row-grid">
+
+            <!-- LEFT: ECU STATUS & DUAL-BANK -->
+            <div class="panel">
+                <div class="panel-heading">
+                    <span class="panel-title">ECU & Partition Telemetry</span>
+                    <button class="btn" onclick="queryActiveApp()">Query ECU</button>
+                </div>
+                <div class="panel-body">
+                    <table class="stat-table">
+                        <tr>
+                            <td class="stat-label">Target MCU</td>
+                            <td class="stat-value">STM32F103 (128 KB)</td>
+                        </tr>
+                        <tr>
+                            <td class="stat-label">Flash Architecture</td>
+                            <td class="stat-value">Dual-Bank Rollback</td>
+                        </tr>
+                        <tr>
+                            <td class="stat-label">Active Partition</td>
+                            <td class="stat-value">
+                                <span id="lblActiveApp" class="badge badge-active">APP 1 (0x08004000)</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="stat-label">Target Partition</td>
+                            <td class="stat-value">
+                                <span id="lblTargetApp" class="badge badge-target">APP 2 (0x08012000)</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="stat-label">Chunk Buffer</td>
+                            <td class="stat-value">256 Bytes (32 frames)</td>
+                        </tr>
+                        <tr>
+                            <td class="stat-label">Vehicle Safety State</td>
+                            <td class="stat-value">
+                                <span class="badge badge-active">STANDBY (SAFE)</span>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <div style="margin-top:14px; padding-top:10px; border-top:1px solid var(--panel-border-subtle); font-size:11px; color:var(--text-muted);">
+                        Atomic bank switching occurs via Option Bytes (User Data 0) after Global CRC16 verification.
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: FIRMWARE SOURCE & UPLOAD -->
+            <div class="panel">
+                <div class="panel-heading">
+                    <span class="panel-title">Firmware Source & Flashing</span>
+                </div>
+                <div class="panel-body">
+
+                    <!-- SOURCE SELECTOR (RAM BUFFER VS SD CARD) -->
+                    <div class="source-switch">
+                        <button type="button" class="btn-source active" id="btnSourceRam" onclick="setOtaSource('ram')">
+                            Direct RAM Buffer
+                        </button>
+                        <button type="button" class="btn-source" id="btnSourceSd" onclick="setOtaSource('sd')">
+                            MicroSD Storage
+                        </button>
+                    </div>
+
+                    <!-- PANE A: DIRECT RAM UPLOAD -->
+                    <div id="paneSourceRam">
+                        <div class="form-group">
+                            <label class="form-label">Select local binary image (.bin):</label>
+                            <div style="display:flex; gap:8px;">
+                                <input type="file" id="fileInput" class="form-control-file" accept=".bin" onchange="onFileSelected()">
+                                <button type="button" class="btn" onclick="loadDemoFirmware()" style="white-space:nowrap;">
+                                    Sample File
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PANE B: MICROSD CARD STORAGE -->
+                    <div id="paneSourceSd" style="display:none; flex-direction:column; gap:10px;">
+                        <!-- SECTION B1: SELECT EXISTING FROM SD -->
+                        <div class="form-group" style="margin-bottom:8px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                                <label class="form-label" style="margin-bottom:0;">Stored images on MicroSD:</label>
+                                <button type="button" class="btn" onclick="rescanSdCard()" style="padding:2px 8px; font-size:10px;">
+                                    Rescan SD
+                                </button>
+                            </div>
+                            <select id="selSdFile" class="form-control-file" onchange="onSdFileChanged()">
+                                <option value="/app2_release_v2.bin">/app2_release_v2.bin (35.2 KB)</option>
+                                <option value="/app1_factory.bin">/app1_factory.bin (32.0 KB)</option>
+                                <option value="/diagnostic_test.bin">/diagnostic_test.bin (28.4 KB)</option>
+                            </select>
+                        </div>
+
+                        <!-- SECTION B2: UPLOAD NEW TO SD -->
+                        <div style="border-top:1px solid var(--panel-border-subtle); padding-top:10px;">
+                            <label class="form-label">Upload new image to MicroSD card:</label>
+                            <div style="display:flex; gap:8px;">
+                                <input type="file" id="fileSdUploadInput" class="form-control-file" accept=".bin">
+                                <button type="button" class="btn" id="btnUploadToSd" onclick="uploadFileToSd()" style="white-space:nowrap;">
+                                    Save to SD
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SELECTED FILE DETAILS -->
+                    <table class="stat-table" id="fileInfoTable" style="margin-bottom:12px; margin-top:8px; display:none;">
+                        <tr>
+                            <td class="stat-label">Source Mode</td>
+                            <td class="stat-value" id="lblFileSource">RAM Buffer (Direct)</td>
+                        </tr>
+                        <tr>
+                            <td class="stat-label">Filename</td>
+                            <td class="stat-value" id="lblFileName">-</td>
+                        </tr>
+                        <tr>
+                            <td class="stat-label">Filesize</td>
+                            <td class="stat-value" id="lblFileSize">-</td>
+                        </tr>
+                    </table>
+
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-top:12px;">
+                        <label style="font-size:11px; color:var(--text-muted); cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                            <input type="checkbox" id="chkInjectCrc"> Inject CRC Error (Chunk #2)
+                        </label>
+                        <button id="btnFlash" class="btn btn-primary" onclick="startOtaFlashing()" disabled>
+                            Flash Firmware
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FULL WIDTH: PROGRESS & CONSOLE -->
+            <div class="panel" style="grid-column: 1 / -1;">
+                <div class="panel-heading">
+                    <span class="panel-title">Flash Progress & System Console</span>
+                    <button class="btn" onclick="clearLogs()">Clear Console</button>
+                </div>
+                <div class="panel-body" style="display:flex; flex-direction:column; gap:10px;">
+                    <div class="progress-container">
+                        <div class="progress-header">
+                            <span id="lblProgressStep">Ready</span>
+                            <span id="lblProgressPct">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div id="progressBarFill" class="progress-bar-fill"></div>
+                        </div>
+                    </div>
+
+                    <div id="logConsole" class="log-box">
+                        <div class="log-line info">[READY] System initialized. Dual-source OTA ready (RAM Buffer / MicroSD).</div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ==================== TAB 2: CAR CONTROL ==================== -->
+        <section id="tabControl" class="panel" style="display: none;">
+            <div class="panel-heading">
+                <span class="panel-title">Vehicle & Actuator Control (CAN 0x040..0x048)</span>
+                <span id="lblOpcode" style="font-family:var(--font-mono); font-size:11.5px; color:var(--text-heading); font-weight:700;">
+                    STOP [0x040]
+                </span>
+            </div>
+            <div class="panel-body">
+                <div class="control-grid">
+                    <!-- D-PAD -->
+                    <div class="dpad-container">
+                        <button class="btn-pad" data-cmd="0x045">NW<kbd>Q</kbd></button>
+                        <button class="btn-pad" data-cmd="0x041">FWD<kbd>W</kbd></button>
+                        <button class="btn-pad" data-cmd="0x047">NE<kbd>E</kbd></button>
+
+                        <button class="btn-pad" data-cmd="0x043">LEFT<kbd>A</kbd></button>
+                        <button class="btn-pad pad-stop active" data-cmd="0x040">STOP<kbd>SPACE</kbd></button>
+                        <button class="btn-pad" data-cmd="0x044">RIGHT<kbd>D</kbd></button>
+
+                        <button class="btn-pad" data-cmd="0x046">SW<kbd>Z</kbd></button>
+                        <button class="btn-pad" data-cmd="0x042">REV<kbd>S</kbd></button>
+                        <button class="btn-pad" data-cmd="0x048">SE<kbd>C</kbd></button>
+                    </div>
+
+                    <!-- TELEMETRY & CONTROLS -->
+                    <div style="display:flex; flex-direction:column; justify-content:space-between; gap:10px;">
+                        <table class="stat-table">
+                            <tr>
+                                <td class="stat-label">Operating Mode</td>
+                                <td class="stat-value"><span id="lblCarMode" class="badge badge-active">DC MOTOR DRIVE</span></td>
+                            </tr>
+                            <tr>
+                                <td class="stat-label">Arbitration ID Range</td>
+                                <td class="stat-value">0x040 - 0x048 (Priority 0)</td>
+                            </tr>
+                            <tr>
+                                <td class="stat-label">Horn Actuator</td>
+                                <td class="stat-value"><span id="lblHornBadge" class="badge badge-target">LOCKED (APP 2)</span></td>
+                            </tr>
+                            <tr>
+                                <td class="stat-label">Safety Interlock</td>
+                                <td class="stat-value">ACTIVE (E-STOP READY)</td>
+                            </tr>
+                        </table>
+
+                        <div style="display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap;">
+                            <button class="btn" id="btnHorn" disabled style="opacity:0.35; cursor:not-allowed;">HORN [APP 2]</button>
+                            <button class="btn" onclick="toggleCarMode()">Switch Mode</button>
+                            <button class="btn btn-danger" onclick="triggerEStop()">EMERGENCY STOP</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        let currentTheme = localStorage.getItem('theme') || 'dark';
+        applyTheme(currentTheme);
+
+        function applyTheme(theme) {
+            currentTheme = theme;
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            const btn = document.getElementById('btnThemeToggle');
+            if (btn) btn.innerText = 'THEME: ' + theme.toUpperCase();
+        }
+
+        function toggleTheme() {
+            applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+        }
+
+        let activeApp = 1;
+        let selectedFile = null;
+        let otaSource = 'ram';
+        let isMotorMode = true;
+
+        /* OTA SOURCE SWITCHER (RAM BUFFER VS MICROSD) */
+        function setOtaSource(source) {
+            otaSource = source;
+            const bRam = document.getElementById('btnSourceRam');
+            const bSd = document.getElementById('btnSourceSd');
+            const pRam = document.getElementById('paneSourceRam');
+            const pSd = document.getElementById('paneSourceSd');
+
+            if (source === 'ram') {
+                bRam.classList.add('active');
+                bSd.classList.remove('active');
+                pRam.style.display = 'block';
+                pSd.style.display = 'none';
+
+                if (selectedFile && !selectedFile.isSd) {
+                    document.getElementById('lblFileSource').innerText = 'RAM Buffer (Direct)';
+                    document.getElementById('lblFileName').innerText = selectedFile.name;
+                    document.getElementById('lblFileSize').innerText = selectedFile.size + " Bytes (" + (selectedFile.size/1024).toFixed(1) + " KB)";
+                    document.getElementById('fileInfoTable').style.display = 'table';
+                    document.getElementById('btnFlash').disabled = false;
+                } else {
+                    document.getElementById('fileInfoTable').style.display = 'none';
+                    document.getElementById('btnFlash').disabled = true;
+                }
+                addLog("Switched OTA source mode to DIRECT RAM BUFFER (No SD required).", "info");
+            } else {
+                bSd.classList.add('active');
+                bRam.classList.remove('active');
+                pSd.style.display = 'flex';
+                pRam.style.display = 'none';
+                onSdFileChanged();
+                addLog("Switched OTA source mode to MICROSD STORAGE (SPI CS: GPIO15).", "info");
+            }
+        }
+
+        function onSdFileChanged() {
+            const sel = document.getElementById('selSdFile');
+            if (!sel || !sel.value) return;
+
+            const name = sel.value;
+            const sizeMap = {
+                '/app2_release_v2.bin': 36044,
+                '/app1_factory.bin': 32768,
+                '/diagnostic_test.bin': 29080
+            };
+            const size = sizeMap[name] || 32768;
+
+            selectedFile = { name: name, size: size, isSd: true };
+            document.getElementById('lblFileSource').innerText = 'MicroSD (SPI CS: GPIO15)';
+            document.getElementById('lblFileName').innerText = name;
+            document.getElementById('lblFileSize').innerText = size + " Bytes (" + (size/1024).toFixed(1) + " KB)";
+            document.getElementById('fileInfoTable').style.display = 'table';
+            document.getElementById('btnFlash').disabled = false;
+            addLog("Selected firmware from MicroSD: " + name + " (" + (size/1024).toFixed(1) + " KB).", "info");
+        }
+
+        function uploadFileToSd() {
+            const input = document.getElementById('fileSdUploadInput');
+            let fname = "";
+            let fsize = 0;
+
+            if (input.files && input.files.length > 0) {
+                const f = input.files[0];
+                if (!f.name.endsWith('.bin')) {
+                    alert("Please select a binary file (.bin) to upload to SD!");
+                    return;
+                }
+                fname = "/" + f.name;
+                fsize = f.size;
+            } else {
+                fname = "/app2_custom_v2.3.bin";
+                fsize = 35280;
+            }
+
+            const btn = document.getElementById('btnUploadToSd');
+            btn.disabled = true;
+            btn.innerText = "Saving...";
+
+            addLog("Uploading " + fname + " to MicroSD FAT32 filesystem...", "info");
+
+            setTimeout(() => {
+                const sel = document.getElementById('selSdFile');
+                const opt = document.createElement('option');
+                opt.value = fname;
+                opt.innerText = fname + " (" + (fsize/1024).toFixed(1) + " KB)";
+                sel.appendChild(opt);
+                sel.value = fname;
+
+                onSdFileChanged();
+                addLog("SUCCESS: Stored " + fname + " (" + fsize + " Bytes) onto MicroSD card.", "success");
+
+                btn.disabled = false;
+                btn.innerText = "Save to SD";
+                input.value = '';
+            }, 600);
+        }
+
+        function rescanSdCard() {
+            addLog("Rescanning MicroSD card file system...", "info");
+            setTimeout(() => {
+                addLog("MicroSD scan complete: binary files detected on FAT32 partition.", "success");
+                onSdFileChanged();
+            }, 300);
+        }
+
+        function switchTab(tab) {
+            const tOta = document.getElementById('tabOta');
+            const tCtrl = document.getElementById('tabControl');
+            const bOta = document.getElementById('tabBtnOta');
+            const bCtrl = document.getElementById('tabBtnControl');
+
+            if (tab === 'ota') {
+                tOta.style.display = 'grid';
+                tCtrl.style.display = 'none';
+                bOta.classList.add('active');
+                bCtrl.classList.remove('active');
+            } else {
+                tOta.style.display = 'none';
+                tCtrl.style.display = 'block';
+                bCtrl.classList.add('active');
+                bOta.classList.remove('active');
+            }
+        }
+
+        function addLog(msg, type = 'info') {
+            const box = document.getElementById('logConsole');
+            const line = document.createElement('div');
+            line.className = 'log-line ' + type;
+            const time = new Date().toTimeString().split(' ')[0];
+            line.innerText = '[' + time + '] ' + msg;
+            box.appendChild(line);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function clearLogs() {
+            document.getElementById('logConsole').innerHTML = '';
+        }
+
+        function updateProgress(percent, stepText) {
+            const bar = document.getElementById('progressBarFill');
+            bar.style.width = percent + '%';
+            document.getElementById('lblProgressPct').innerText = percent + '%';
+            if (stepText) {
+                document.getElementById('lblProgressStep').innerText = stepText;
+                addLog(stepText, percent === 100 ? 'success' : 'info');
+            }
+        }
+
+        function updateBadges(app) {
+            activeApp = app;
+            const bAct = document.getElementById('lblActiveApp');
+            const bTgt = document.getElementById('lblTargetApp');
+            const bHorn = document.getElementById('btnHorn');
+            const lHorn = document.getElementById('lblHornBadge');
+
+            if (app === 1) {
+                bAct.className = 'badge badge-active';
+                bAct.innerText = 'APP 1 (0x08004000)';
+                bTgt.className = 'badge badge-target';
+                bTgt.innerText = 'APP 2 (0x08012000)';
+
+                if (bHorn) {
+                    bHorn.disabled = true;
+                    bHorn.innerText = 'HORN [APP 2]';
+                    bHorn.style.opacity = '0.35';
+                    bHorn.style.cursor = 'not-allowed';
+                }
+                if (lHorn) {
+                    lHorn.className = 'badge badge-target';
+                    lHorn.innerText = 'LOCKED (APP 2)';
+                }
+            } else {
+                bAct.className = 'badge badge-active';
+                bAct.innerText = 'APP 2 (0x08012000)';
+                bTgt.className = 'badge badge-target';
+                bTgt.innerText = 'APP 1 (0x08004000)';
+
+                if (bHorn) {
+                    bHorn.disabled = false;
+                    bHorn.innerText = 'HORN [H]';
+                    bHorn.style.opacity = '1';
+                    bHorn.style.cursor = 'pointer';
+                }
+                if (lHorn) {
+                    lHorn.className = 'badge badge-active';
+                    lHorn.innerText = 'UNLOCKED (APP 2)';
+                }
+            }
+        }
+
+        /* HORN EXECUTION (CAN COMMAND) */
+        function executeHorn(state) {
+            if (state) {
+                addLog("[CAN TX 0x0C1] HORN ON -> STM32 TIM4 Buzzer Active (2.5kHz Tone)", "success");
+            } else {
+                addLog("[CAN TX 0x0C0] HORN OFF -> STM32 TIM4 Buzzer Inactive", "info");
+            }
+        }
+
+        function onHornPress(isPressed) {
+            if (activeApp !== 2) {
+                addLog("Horn is locked: Only supported in App 2 firmware.", "warn");
+                return;
+            }
+            const btn = document.getElementById('btnHorn');
+            if (isPressed) {
+                if (btn) btn.classList.add('active');
+                executeHorn(true);
+            } else {
+                if (btn) btn.classList.remove('active');
+                executeHorn(false);
+            }
+        }
+
+        function queryActiveApp() {
+            addLog("Sending CAN ID 0x620 query to STM32 ECU...", "info");
+            setTimeout(() => {
+                const next = (activeApp === 1) ? 2 : 1;
+                updateBadges(next);
+                addLog("STM32 response: Active App " + next + " (0x080" + (next === 1 ? '04' : '12') + "000)", "success");
+            }, 300);
+        }
+
+        function onFileSelected() {
+            const input = document.getElementById('fileInput');
+            if (!input.files || input.files.length === 0) return;
+
+            const f = input.files[0];
+            if (!f.name.endsWith('.bin')) {
+                alert("Please select a valid binary file (.bin)!");
+                input.value = '';
+                return;
+            }
+
+            selectedFile = { name: f.name, size: f.size, isSd: false };
+            document.getElementById('lblFileSource').innerText = 'RAM Buffer (Direct)';
+            document.getElementById('lblFileName').innerText = selectedFile.name;
+            document.getElementById('lblFileSize').innerText = selectedFile.size + " Bytes (" + (selectedFile.size/1024).toFixed(1) + " KB)";
+            document.getElementById('fileInfoTable').style.display = 'table';
+            document.getElementById('btnFlash').disabled = false;
+            addLog("Loaded firmware image into memory: " + selectedFile.name + " (" + selectedFile.size + " Bytes). Ready to flash.", "info");
+        }
+
+        function loadDemoFirmware() {
+            selectedFile = { name: "App2_STM32_v2.1.bin", size: 32768, isSd: false };
+            document.getElementById('lblFileSource').innerText = 'RAM Buffer (Sample)';
+            document.getElementById('lblFileName').innerText = selectedFile.name;
+            document.getElementById('lblFileSize').innerText = "32768 Bytes (32.0 KB)";
+            document.getElementById('fileInfoTable').style.display = 'table';
+            document.getElementById('btnFlash').disabled = false;
+            addLog("Loaded sample firmware image: " + selectedFile.name + " (32.0 KB). Ready to flash.", "info");
+        }
+
+        function startOtaFlashing() {
+            if (!selectedFile) return;
+
+            const target = (activeApp === 1) ? 2 : 1;
+            const srcDesc = (otaSource === 'sd') ? "MicroSD (" + selectedFile.name + ")" : "RAM Buffer (" + selectedFile.name + ")";
+            const btn = document.getElementById('btnFlash');
+            btn.disabled = true;
+
+            updateProgress(2, "Handshake with Bootloader via CAN (ID: 0x600 [0xDEADBEEF])...");
+
+            setTimeout(() => {
+                updateProgress(10, "STM32 ACK received. Erasing Flash App " + target + " (56 KB)...");
+                setTimeout(() => {
+                    updateProgress(18, "Flash erased. Streaming 256-byte chunks from " + (otaSource === 'sd' ? 'MicroSD' : 'RAM') + "...");
+
+                    let chunk = 0;
+                    const totalChunks = 74;
+                    const interval = setInterval(() => {
+                        chunk += 4;
+                        if (chunk > totalChunks) chunk = totalChunks;
+                        const pct = 18 + Math.round((chunk / totalChunks) * 72);
+                        updateProgress(pct, "Transmitting Chunk #" + chunk + "/" + totalChunks + " (256B)...");
+
+                        if (chunk >= totalChunks) {
+                            clearInterval(interval);
+                            setTimeout(() => {
+                                updateProgress(95, "Sending END_FILE command. Validating Global CRC16 checksum...");
+                                setTimeout(() => {
+                                    updateProgress(100, "OTA UPDATE SUCCESSFUL! Swapped to App " + target + " via Option Bytes.");
+                                    updateBadges(target);
+                                    btn.disabled = false;
+                                }, 500);
+                            }, 500);
+                        }
+                    }, 80);
+                }, 800);
+            }, 600);
+        }
+
+        function toggleCarMode() {
+            isMotorMode = !isMotorMode;
+            const b = document.getElementById('lblCarMode');
+            if (isMotorMode) {
+                b.innerText = "DC MOTOR DRIVE";
+                addLog("CAN command: Switched to DC MOTOR DRIVE (Opcode 0x001)", "info");
+            } else {
+                b.innerText = "SERVO MANIPULATOR";
+                addLog("CAN command: Switched to SERVO MANIPULATOR (Opcode 0x002)", "warn");
+            }
+        }
+
+        function triggerEStop() {
+            setPadActive("0x040");
+            document.getElementById('lblOpcode').innerText = "E-STOP [0x000]";
+            addLog("EMERGENCY STOP [0x000] dispatched to CAN Bus!", "err");
+        }
+
+        function setPadActive(cmd) {
+            document.querySelectorAll('.btn-pad').forEach(b => b.classList.remove('active'));
+            const el = document.querySelector(`.btn-pad[data-cmd="${cmd}"]`);
+            if (el) el.classList.add('active');
+            document.getElementById('lblOpcode').innerText = cmd;
+        }
+
+        function releasePad() {
+            setPadActive("0x040");
+            document.getElementById('lblOpcode').innerText = "STOP [0x040]";
+        }
+
+        document.querySelectorAll('.btn-pad').forEach(btn => {
+            btn.addEventListener('mousedown', () => setPadActive(btn.getAttribute('data-cmd')));
+            btn.addEventListener('mouseup', releasePad);
+            btn.addEventListener('mouseleave', releasePad);
+        });
+
+        const btnHornEl = document.getElementById('btnHorn');
+        if (btnHornEl) {
+            btnHornEl.addEventListener('mousedown', () => onHornPress(true));
+            btnHornEl.addEventListener('mouseup', () => onHornPress(false));
+            btnHornEl.addEventListener('mouseleave', () => onHornPress(false));
+            btnHornEl.addEventListener('touchstart', (e) => { e.preventDefault(); onHornPress(true); });
+            btnHornEl.addEventListener('touchend', (e) => { e.preventDefault(); onHornPress(false); });
+        }
+
+        // Keyboard navigation
+        window.addEventListener('keydown', (e) => {
+            if (e.repeat) return;
+            const k = e.key.toUpperCase();
+            let c = null;
+            if (k === 'W' || k === 'ARROWUP') c = '0x041';
+            else if (k === 'S' || k === 'ARROWDOWN') c = '0x042';
+            else if (k === 'A' || k === 'ARROWLEFT') c = '0x043';
+            else if (k === 'D' || k === 'ARROWRIGHT') c = '0x044';
+            else if (k === 'Q') c = '0x045';
+            else if (k === 'Z') c = '0x046';
+            else if (k === 'E') c = '0x047';
+            else if (k === 'C') c = '0x048';
+            else if (k === 'H') { onHornPress(true); return; }
+            else if (k === ' ') { triggerEStop(); return; }
+
+            if (c) setPadActive(c);
+        });
+
+        window.addEventListener('keyup', (e) => {
+            const k = e.key.toUpperCase();
+            if (k === 'H') {
+                onHornPress(false);
+                return;
+            }
+            if (['W','S','A','D','Q','E','Z','C','ARROWUP','ARROWDOWN','ARROWLEFT','ARROWRIGHT'].includes(k)) {
+                releasePad();
+            }
+        });
+    </script>
+</body>
+</html>

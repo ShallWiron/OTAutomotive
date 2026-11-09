@@ -23,6 +23,10 @@ public:
     bool emergencyStop();
     bool setMode(CarMode mode);
     bool triggerBootloader();
+    bool ledOn();
+    bool ledOff();
+    bool toggleLed();
+    bool isLedOn() const { return _ledState; }
 
     // ==================== Nhóm 1: Điều khiển Bánh xe ====================
     bool moveForward();
@@ -30,30 +34,25 @@ public:
     bool turnLeft();
     bool turnRight();
     bool stop();
-    bool leftWheelForward();
-    bool leftWheelBackward();
-    bool rightWheelForward();
-    bool rightWheelBackward();
+    bool leftWheelForward();     // Tiến lệch trái (NW)
+    bool leftWheelBackward();    // Lùi lệch trái (SW)
+    bool rightWheelForward();    // Tiến lệch phải (NE)
+    bool rightWheelBackward();   // Lùi lệch phải (SE)
 
-    // ==================== Nhóm 2: Điều khiển Cánh tay & Kẹp ====================
+    // ==================== Nhóm 2: Điều khiển Cánh tay 2-DOF ====================
     bool armUp();
     bool armDown();
     bool armExtend();
     bool armRetract();
     bool armStop();
-    bool gripperOpen();
-    bool gripperClose();
+
+    // ==================== Nhóm 3: Còi báo hiệu ====================
+    bool hornOn();
+    bool hornOff();
+    bool isHornOn() const { return _hornState; }
 
     // ==================== Bộ điều phối lệnh chuẩn Opcode CAN ID ====================
-    /**
-     * @brief Thực thi lệnh trực tiếp bằng mã CAN ID (Opcode)
-     * @param can_id Mã lệnh Hex (vd: 0x041: FORWARD, 0x040: STOP, 0x081: ARM_UP...)
-     */
     bool executeCanId(uint16_t can_id);
-
-    /**
-     * @brief Thực thi lệnh dạng chuỗi (Hỗ trợ mã hex '0x041' hoặc từ khóa mô tả 'forward', 'stop'...)
-     */
     bool executeCommand(const String &cmd);
 
     // ==================== Trạng thái hệ thống ====================
@@ -66,6 +65,9 @@ private:
     CAN_Driver &_can;
     CarMode _currentMode;
     String _lastAction;
+    uint32_t _lastCanId = 0x040;
+    bool _ledState;
+    bool _hornState = false;
 
     bool sendCanCommand(uint32_t can_id, const String &action_name);
 };

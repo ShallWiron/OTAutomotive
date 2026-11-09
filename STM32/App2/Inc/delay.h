@@ -1,0 +1,11 @@
+#ifndef DELAY_H
+#define DELAY_H
+
+#include <stdint.h>
+#include "stm32f10x.h"
+
+void Delay_Init(void);
+void Delay_Ms(uint32_t ms);
+void Delay_Us(uint32_t us);
+
+#endif /* DELAY_H */

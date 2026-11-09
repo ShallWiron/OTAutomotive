@@ -29,6 +29,6 @@ void Delay_Ms(uint32_t u32DelayInMs)
 	
 	while (u32DelayInMs) {
 		Delay1Ms();
-		--u32DelayInMs;
+		u32DelayInMs--;
 	}
 }

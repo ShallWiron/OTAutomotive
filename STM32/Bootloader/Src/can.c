@@ -1,5 +1,6 @@
 #include "can.h"
 #include "uart.h"
+#include "delay_tim2.h"
 #include "stm32f10x_rcc.h"
 #include "stm32f10x_gpio.h"
 #include "stm32f10x_can.h"
@@ -107,7 +108,7 @@ void CAN_SendArray(const uint8_t *data, uint16_t length)
     uint8_t start_cmd = 0xAA;
     CAN_SendMessagePolling(0x100, &start_cmd, 1);
 
-    for (volatile int i = 0; i < 20000; i++);
+    Delay_Ms(2); /* Chờ receiver bên kia sẵn sàng sau START frame */
 
     uint16_t sent = 0;
     while (sent < length)
@@ -116,7 +117,7 @@ void CAN_SendArray(const uint8_t *data, uint16_t length)
         CAN_SendMessagePolling(0x101, &data[sent], chunk_len);
         sent += chunk_len;
 
-        for (volatile int i = 0; i < 15000; i++);
+        Delay_Ms(1); /* Inter-frame gap: tránh FIFO overflow phía receiver */
     }
 
     uint8_t end_cmd = 0xBB;

@@ -12,9 +12,11 @@
 // Module thẻ nhớ MicroSD (SPI)
 #define SD_CS_PIN               15
 
-// ==================== Cấu hình Mạng WiFi (Station - Bắt WiFi ngoài) ====================
-#define WIFI_SSID               "Shall"                    // Thay tên WiFi / Hotspot điện thoại tại đây
-#define WIFI_PASSWORD           "0123456789"               // Thay mật khẩu WiFi tại đây
+// ==================== Cấu hình Mạng WiFi ====================
+#define WIFI_AP_SSID            "AutoCar_Gateway"          // Tên WiFi phát từ ESP32
+#define WIFI_AP_PASSWORD        "12345678"                 // Mật khẩu WiFi phát
+#define WIFI_SSID               "Shall"                    // Tên WiFi nhà / Hotspot ngoài
+#define WIFI_PASSWORD           "0123456789"               // Mật khẩu WiFi ngoài
 #define WEB_SERVER_PORT         80
 
 // Cấu hình Serial Debug

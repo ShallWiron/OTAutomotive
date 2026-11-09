@@ -6,8 +6,6 @@
 #include "uart.h"
 #include "delay_tim2.h"
 
-/* ==================== Biến nội bộ (static) ==================== */
-
 static uint8_t            chunk_buffer[OTA_CHUNK_BUFFER_SIZE];
 static uint16_t           buffer_index        = 0;
 static uint16_t           expected_chunk_len  = 0;
@@ -27,15 +25,11 @@ static uint8_t            has_file_crc        = 0;
 static uint8_t            expected_packet_idx = 0;
 static uint8_t            chunk_seq_error     = 0;
 
-/* ==================== Hàm nội bộ gửi ACK / NACK ==================== */
-
 static void OTA_SendResponse(uint8_t status)
 {
     uint8_t resp[1] = { status };
     CAN_SendMessagePolling(ID_RESPONSE, resp, 1);
 }
-
-/* ==================== Khởi tạo OTA ==================== */
 
 void OTA_Init(void)
 {
@@ -53,8 +47,6 @@ void OTA_Init(void)
     expected_file_crc   = 0;
     has_file_crc        = 0;
 }
-
-/* ==================== Xử lý từng bước giao thức CAN OTA ==================== */
 
 static void OTA_HandleStartOta(const CanRxMsg *rx)
 {
@@ -186,10 +178,10 @@ static void OTA_HandleStartChunk(const CanRxMsg *rx)
         UART_SendString("\r\n");
         chunk_state  = CHUNK_STATE_IDLE;
         buffer_index = 0;
+        OTA_SendResponse(OTA_NACK);
         return;
     }
 
-    /* Reset bộ đệm chunk để sẵn sàng nhận mới hoặc nhận lại (Retry) */
     expected_chunk_len  = len;
     buffer_index        = 0;
     expected_packet_idx = 0;
@@ -204,10 +196,8 @@ static void OTA_HandleDataChunk(const CanRxMsg *rx)
         return;
     }
 
-    /* Lấy STT gói tin từ 6 bit thấp [5:0] của CAN ID */
     uint8_t pkt_idx = (uint8_t)(rx->StdId & ID_PACKET_INDEX_MASK);
 
-    /* 1. Kiểm tra STT gói tin: nếu sai thứ tự hoặc rớt gói trước đó */
     if (pkt_idx != expected_packet_idx)
     {
         UART_SendString("[OTA ERR] Sai STT goi CAN! Ky vong: #");
@@ -217,18 +207,15 @@ static void OTA_HandleDataChunk(const CanRxMsg *rx)
         UART_SendString(" -> Gui NACK yeu cau truyen lai Chunk!\r\n");
 
         chunk_seq_error = 1;
-        /* Gửi NACK sớm để ESP32 có thể ngắt chuỗi phát và retry ngay */
         OTA_SendResponse(OTA_NACK);
         return;
     }
 
-    /* 2. Nếu Chunk này đã đánh dấu lỗi thì bỏ qua các gói tiếp theo */
     if (chunk_seq_error)
     {
         return;
     }
 
-    /* 3. Lưu dữ liệu gói vào buffer RAM */
     if ((uint32_t)buffer_index + rx->DLC <= OTA_CHUNK_BUFFER_SIZE)
     {
         for (uint8_t i = 0; i < rx->DLC; i++)
@@ -240,7 +227,6 @@ static void OTA_HandleDataChunk(const CanRxMsg *rx)
     }
     else
     {
-        /* Tràn buffer chunk -> đánh dấu lỗi */
         buffer_index    = OTA_CHUNK_BUFFER_SIZE + 1U;
         chunk_seq_error = 1;
         OTA_SendResponse(OTA_NACK);
@@ -256,7 +242,6 @@ static void OTA_HandleEndChunk(const CanRxMsg *rx)
         return;
     }
 
-    /* 1. Kiểm tra cờ lỗi sai/mất gói STT */
     if (chunk_seq_error)
     {
         UART_SendString("[OTA ERR] Chunk co goi bi sai/mat STT -> Gui NACK (yeu cau gui lai Chunk)\r\n");
@@ -269,7 +254,6 @@ static void OTA_HandleEndChunk(const CanRxMsg *rx)
         return;
     }
 
-    /* 2. Kiểm tra đủ số byte của Chunk (phát hiện rớt frame CAN giữa chừng) */
     if (buffer_index != expected_chunk_len)
     {
         UART_SendString("[OTA ERR] Chunk thieu goi CAN! Nhan ");
@@ -287,7 +271,6 @@ static void OTA_HandleEndChunk(const CanRxMsg *rx)
         return;
     }
 
-    /* 3. Tính và kiểm tra mã CRC16-Modbus của Chunk (nếu ESP32 gửi kèm 2 byte CRC16) */
     uint16_t calc_crc = CRC16_Modbus(chunk_buffer, expected_chunk_len);
     if (rx->DLC >= 2)
     {
@@ -362,7 +345,6 @@ static void OTA_HandleEndFile(const CanRxMsg *rx)
 {
     UART_SendString("\r\n[OTA] Nhan lenh END_FILE. Dang kiem tra toan ven Firmware...\r\n");
 
-    /* 1. Kiểm tra tổng dung lượng đã ghi có khớp với khai báo ở START_FILE không */
     if (expected_file_size > 0 && flash_offset != expected_file_size)
     {
         UART_SendString("[OTA ERR] Tong so byte khong khop! Da ghi ");
@@ -378,7 +360,6 @@ static void OTA_HandleEndFile(const CanRxMsg *rx)
         return;
     }
 
-    /* 2. Kiểm tra Global CRC16 trên toàn bộ vùng Flash vừa nạp */
     if (rx->DLC >= 2)
     {
         expected_file_crc = ((uint16_t)rx->Data[0] << 8) | rx->Data[1];
@@ -405,7 +386,6 @@ static void OTA_HandleEndFile(const CanRxMsg *rx)
         return;
     }
 
-    /* 3. Kiểm tra tính hợp lệ của Vector Table (MSP & Reset_Handler) của Firmware mới */
     if (!Bootloader_CheckAppValid(target_base_addr))
     {
         UART_SendString("[OTA ERR] Firmware moi khong co Vector Table hop le -> Xoa & Rollback!\r\n");
@@ -417,7 +397,6 @@ static void OTA_HandleEndFile(const CanRxMsg *rx)
         return;
     }
 
-    /* 4. Toàn bộ kiểm tra thành công: Cập nhật Option Bytes sang phân vùng mới, gửi ACK và Jump */
     Flash_SetActivePartition(target_app_id);
     OTA_SendResponse(OTA_ACK);
 
@@ -432,13 +411,10 @@ static void OTA_HandleEndFile(const CanRxMsg *rx)
     Bootloader_JumpToApp(target_base_addr);
 }
 
-/* ==================== Dispatcher chính ==================== */
-
 void OTA_ProcessCanMessage(const CanRxMsg *rx)
 {
     uint32_t cmd_id = rx->StdId & ID_CMD_MASK;
 
-    /* Lệnh QUERY_APP: ESP32 truy vấn trạng thái phân vùng App đang Active */
     if (cmd_id == ID_QUERY_APP)
     {
         uint8_t resp[2];
@@ -448,14 +424,12 @@ void OTA_ProcessCanMessage(const CanRxMsg *rx)
         return;
     }
 
-    /* Lệnh START_OTA luôn được ưu tiên xử lý ở mọi trạng thái để có thể bắt đầu phiên OTA mới */
     if (cmd_id == ID_START_OTA)
     {
         OTA_HandleStartOta(rx);
         return;
     }
 
-    /* Lệnh START_FILE có thể nhận sau START_OTA hoặc khi gửi lại */
     if (cmd_id == ID_START_FILE)
     {
         OTA_HandleStartFile(rx);

@@ -132,11 +132,8 @@ void PendSV_Handler(void)
   * @param  None
   * @retval None
   */
-extern volatile uint32_t g_ms;
-
 void SysTick_Handler(void)
 {
-    g_ms++;
 }
 
 /******************************************************************************/

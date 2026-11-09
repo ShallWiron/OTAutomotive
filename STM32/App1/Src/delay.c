@@ -1,27 +1,36 @@
 #include "delay.h"
-#include "ota_trigger.h"
-
-/* Biến đếm thời gian hệ thống được tăng mỗi 1ms trong SysTick_Handler (stm32f10x_it.c) */
-volatile uint32_t g_ms = 0U;
+#include "stm32f10x_rcc.h"
+#include "stm32f10x_tim.h"
 
 void Delay_Init(void)
 {
-    /* Cấu hình SysTick ngắt chu kỳ 1ms theo xung nhịp hệ thống (72MHz -> 1kHz) */
-    SysTick_Config(SystemCoreClock / 1000UL);
+    /* Dùng TIM2 để đếm us chính xác */
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
+
+    TIM_TimeBaseInitTypeDef tb;
+    TIM_TimeBaseStructInit(&tb);
+    tb.TIM_CounterMode   = TIM_CounterMode_Up;
+    tb.TIM_Period        = 0xFFFF;
+    tb.TIM_Prescaler     = 72 - 1; /* 1us mỗi tick tại 72MHz */
+    TIM_TimeBaseInit(TIM2, &tb);
+    TIM_Cmd(TIM2, ENABLE);
 }
 
-uint32_t Delay_GetTick(void)
+void Delay_Us(uint32_t us)
 {
-    return g_ms;
+    while (us > 0)
+    {
+        uint16_t chunk = (us > 50000) ? 50000 : (uint16_t)us;
+        TIM_SetCounter(TIM2, 0);
+        while (TIM_GetCounter(TIM2) < chunk) { }
+        us -= chunk;
+    }
 }
 
 void Delay_Ms(uint32_t ms)
 {
-    uint32_t start = g_ms;
-    while ((uint32_t)(g_ms - start) < ms)
+    while (ms--)
     {
-        /* Thường xuyên kiểm tra bản tin CAN OTA trong lúc delay để phản hồi tức thì về ESP32 */
-        OTA_Trigger_Poll();
+        Delay_Us(1000);
     }
 }
-

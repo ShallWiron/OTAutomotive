@@ -1,5 +1,5 @@
 # Ten du an va thu muc OUTPUT 					-----------------------------------------
-TARGET 		= app1
+TARGET 		= app2
 BUILD_DIR 	= build
 
 # Toolchain, cac cong cu 						-----------------------------------------
